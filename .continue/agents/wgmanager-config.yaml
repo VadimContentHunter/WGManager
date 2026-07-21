@@ -1,0 +1,56 @@
+name: WG Manager
+version: 1.0.0
+schema: v1
+
+models:
+  # Основная модель
+  - name: Qwen2.5 Coder 14B
+    provider: ollama
+    model: qwen2.5-coder:14b
+    roles:
+      - chat
+      - edit
+      - apply
+    capabilities:
+      - tool_use
+
+  # Автодополнение
+  - name: Qwen2.5 Coder 7B
+    provider: ollama
+    model: qwen2.5-coder:7b
+    roles:
+      - autocomplete
+
+  # Аналитика
+  - name: Qwen3 14B
+    provider: ollama
+    model: qwen3:14b
+    roles:
+      - chat
+
+  # Тяжелый анализ
+  - name: Qwen3 Coder 30B
+    provider: ollama
+    model: qwen3-coder:30b
+    roles:
+      - chat
+
+  # Векторное представление текста
+  - name: Nomic Embed
+    provider: ollama
+    model: nomic-embed-text
+    roles:
+      - embed
+
+  # Реранжирование ответов
+  - name: BGE Reranker
+    provider: ollama
+    model: qllama/bge-reranker-v2-m3
+    roles:
+      - rerank
+
+  - name: Qwen3 Reranker 0.6B
+    provider: ollama
+    model: pdurugyan/qwen3-reranker-0.6b-q8_0
+    roles:
+      - rerank
