@@ -8,6 +8,13 @@ globs: "**/*.php"
 
 When adding or editing PHP documentation, follow these rules and also respect the PHPDoc tag guidance in <https://github.com/php-fig/fig-standards/blob/master/proposed/phpdoc-tags.md>
 
+## Documentation language
+
+- All PHPDoc text must be written in Russian.
+- This includes class descriptions, method descriptions, and descriptions for `@param`, `@return`, `@var`, `@throws`, and other PHPDoc tags.
+- Do not write PHPDoc descriptions in English.
+- PHP keywords, type names, class names, namespaces, method names, property names, and PHPDoc tags remain in English.
+
 ## General documentation rules
 
 - Write documentation only when it adds real value.
