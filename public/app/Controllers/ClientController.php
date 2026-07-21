@@ -7,15 +7,22 @@ namespace App\Controllers;
 use App\Services\Request;
 use App\Services\Response;
 
+/**
+ * Контроллер для работы с клиентами.
+ * Обрабатывает HTTP-запросы, связанные с CRUD операциями над клиентами.
+ */
 class ClientController
 {
+    /**
+     * Запрос, полученный от клиента.
+     */
     public function __construct(
         private Request $request,
         private Response $response,
     ) {}
-
     /**
      * GET /api/clients
+     * Получает список всех клиентов.
      */
     public function list(): void
     {
@@ -27,6 +34,7 @@ class ClientController
 
     /**
      * GET /api/client/{id}
+     * Получает данные клиента по его ID.
      */
     public function show(): void
     {
@@ -39,6 +47,7 @@ class ClientController
 
     /**
      * POST /api/client
+     * Создает нового клиента.
      */
     public function create(): void
     {
@@ -51,6 +60,7 @@ class ClientController
 
     /**
      * PATCH /api/client/{id}
+     * Обновляет данные клиента по его ID.
      */
     public function update(): void
     {
@@ -64,6 +74,7 @@ class ClientController
 
     /**
      * DELETE /api/client/{id}
+     * Удаляет клиента по его ID.
      */
     public function delete(): void
     {
@@ -74,3 +85,4 @@ class ClientController
         ]);
     }
 }
+

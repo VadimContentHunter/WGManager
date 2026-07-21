@@ -2,6 +2,12 @@
 
 use App\Controllers\ClientController;
 
+/**
+ * Маршруты приложения.
+ * Ключ - регулярное выражение, значение - массив обработчиков для каждого метода.
+ *
+ * @var array<string, array<string, array<class-string, string>>>
+ */
 return [
 
     '#^api/clients$#' => [
@@ -37,3 +43,4 @@ return [
     ],
 
 ];
+

@@ -4,12 +4,28 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Services\Request;
+use App\Services\Response;
+
+/**
+ * Класс Router
+ * Обрабатывает маршрутизацию запросов в приложении.
+ */
 class Router
 {
+    /**
+     * Маршруты, определенные в конфигурации.
+     * Ключ - регулярное выражение, значение - массив обработчиков для каждого метода.
+     *
+     * @var array<string, array<string, array<class-string, string>>>
+     */
     public function __construct(
         private array $routes,
     ) {}
 
+    /**
+     * Обрабатывает текущий HTTP-запрос, сопоставляя его с маршрутом и вызывая соответствующий обработчик.
+     */
     public function dispatch(): void
     {
         $method = $_SERVER['REQUEST_METHOD'];
@@ -54,3 +70,4 @@ class Router
         ], 404);
     }
 }
+
