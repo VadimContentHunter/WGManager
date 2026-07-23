@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use InvalidArgumentException;
+
 /**
  * Класс Request
  * Представляет HTTP-запрос, включая данные из URI, заголовков, тела и т.д.
@@ -21,30 +23,30 @@ class Request
     public readonly string $uri;
 
     /**
-     * Данные, извлеченные из URI (например, параметры маршрута).
+     * Данные, извлеченные из URI.
      *
      * @var array<string, string>
      */
     public readonly array $route;
 
     /**
-     * Загруженные параметры из строки запроса.
+     * GET-параметры.
      *
-     * @var array<string, string>
+     * @var array<string, mixed>
      */
     public readonly array $query;
 
     /**
-     * Данные, извлеченные из тела запроса.
+     * Данные тела запроса.
      *
-     * @var array<string, string>
+     * @var array<string, mixed>
      */
     public readonly array $body;
 
     /**
      * Загруженные файлы.
      *
-     * @var array<string, array<string, string>>
+     * @var array<string, mixed>
      */
     public readonly array $files;
 
@@ -66,6 +68,9 @@ class Request
         $this->headers = getallheaders();
     }
 
+    /**
+     * Разбирает тело запроса.
+     */
     private function parseBody(): array
     {
         if (!empty($_POST)) {
@@ -73,6 +78,7 @@ class Request
         }
 
         $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+
         if (str_contains($contentType, 'application/json')) {
             return json_decode(
                 file_get_contents('php://input'),
@@ -80,12 +86,16 @@ class Request
             ) ?? [];
         }
 
-        parse_str(file_get_contents('php://input'), $data);
+        parse_str(
+            file_get_contents('php://input'),
+            $data
+        );
+
         return $data;
     }
 
     /**
-     * Получает значение из $route по ключу.
+     * Возвращает параметр маршрута.
      */
     public function route(string $key, mixed $default = null): mixed
     {
@@ -93,7 +103,7 @@ class Request
     }
 
     /**
-     * Получает значение из $query по ключу.
+     * Возвращает GET-параметр.
      */
     public function query(string $key, mixed $default = null): mixed
     {
@@ -101,7 +111,7 @@ class Request
     }
 
     /**
-     * Получает значение из $body по ключу.
+     * Возвращает параметр тела запроса.
      */
     public function body(string $key, mixed $default = null): mixed
     {
@@ -109,11 +119,30 @@ class Request
     }
 
     /**
-     * Получает значение из $headers по ключу.
+     * Возвращает HTTP-заголовок.
      */
     public function header(string $key, mixed $default = null): mixed
     {
         return $this->headers[$key] ?? $default;
     }
-}
 
+    /**
+     * Проверяет наличие обязательных полей.
+     *
+     * @throws InvalidArgumentException
+     */
+    public function require(array $fields): void
+    {
+        foreach ($fields as $field) {
+            if (
+                !array_key_exists($field, $this->body)
+                || $this->body[$field] === null
+                || $this->body[$field] === ''
+            ) {
+                throw new InvalidArgumentException(
+                    "Поле '{$field}' обязательно."
+                );
+            }
+        }
+    }
+}

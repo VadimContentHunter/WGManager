@@ -54,10 +54,29 @@ class Router
 
             $request = new Request($route);
             $response = new Response();
+
+            $settings = new SettingsService();
+            $wireGuard = new WireGuardService($settings);
+            $clientService = new ClientService($wireGuard);
+            $apiKeys = new ApiKeyService($settings);
+
+            if (
+                $apiKeys->exists()
+                && !$apiKeys->validate(
+                    $request->header('X-API-Key')
+                )
+            ) {
+                $response->unauthorized();
+
+                return;
+            }
+
             [$controller, $action] = $handlers[$method];
+
             $controller = new $controller(
                 $request,
-                $response
+                $response,
+                $clientService
             );
 
             $controller->$action();
