@@ -7,9 +7,6 @@ require_once __DIR__ . '/app/Services/Autoloader.php';
 use App\Services\Autoloader;
 use App\Services\Response;
 use App\Services\Router;
-use InvalidArgumentException;
-use RuntimeException;
-use Throwable;
 
 Autoloader::register();
 

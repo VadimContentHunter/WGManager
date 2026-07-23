@@ -4,81 +4,36 @@ declare(strict_types=1);
 
 use App\Controllers\ApiKeyController;
 use App\Controllers\ClientController;
+use App\Controllers\WebController;
 
-/**
- * Маршруты приложения.
- *
- * @var array<string, array<string, array{0: class-string, 1: string}>>
- */
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | API Key
-    |--------------------------------------------------------------------------
-    */
-
-    '#^api/apikey$#' => [
-
+    '#^$#' => [
         'GET' => [
-            ApiKeyController::class,
-            'show',
-        ],
-
-        'POST' => [
-            ApiKeyController::class,
-            'create',
-        ],
-
-        'PUT' => [
-            ApiKeyController::class,
-            'rotate',
+            WebController::class,
+            'dashboard',
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Клиенты
-    |--------------------------------------------------------------------------
-    */
-
     '#^api/clients$#' => [
-
-        'GET' => [
-            ClientController::class,
-            'list',
-        ],
-
-        'POST' => [
-            ClientController::class,
-            'create',
-        ],
+        'GET' => [ClientController::class, 'list'],
+        'POST' => [ClientController::class, 'create'],
     ],
 
     '#^api/clients/(?<publicKey>[^/]+)$#' => [
-
-        'GET' => [
-            ClientController::class,
-            'show',
-        ],
-
-        'PATCH' => [
-            ClientController::class,
-            'update',
-        ],
-
-        'DELETE' => [
-            ClientController::class,
-            'delete',
-        ],
+        'GET'    => [ClientController::class, 'show'],
+        'PUT'    => [ClientController::class, 'update'],
+        'DELETE' => [ClientController::class, 'delete'],
     ],
 
     '#^api/clients/(?<publicKey>[^/]+)/config$#' => [
+        'GET' => [ClientController::class, 'download'],
+    ],
 
-        'GET' => [
-            ClientController::class,
-            'download',
-        ],
+    '#^api/apikey$#' => [
+        'GET'  => [ApiKeyController::class, 'show'],
+        'POST' => [ApiKeyController::class, 'create'],
+        'PUT'  => [ApiKeyController::class, 'rotate'],
     ],
 
 ];
