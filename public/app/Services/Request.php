@@ -129,9 +129,11 @@ class Request
     /**
      * Проверяет наличие обязательных полей.
      *
+     * @return array<string, mixed>
+     * 
      * @throws InvalidArgumentException
      */
-    public function require(array $fields): void
+    public function require(array $fields): array
     {
         foreach ($fields as $field) {
             if (
@@ -144,5 +146,7 @@ class Request
                 );
             }
         }
+
+        return $this->body;
     }
 }
