@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Controllers\ApiKeyController;
 use App\Controllers\ClientController;
+use App\Controllers\SettingsController;
 use App\Controllers\WebController;
 use RuntimeException;
 
@@ -91,6 +92,12 @@ class Router
                     $request,
                     $response,
                     $apiKeys
+                ),
+
+                SettingsController::class => new SettingsController(
+                    $request,
+                    $response,
+                    $settings
                 ),
 
                 default => throw new RuntimeException(

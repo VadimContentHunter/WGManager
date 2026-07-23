@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Controllers\ApiKeyController;
 use App\Controllers\ClientController;
+use App\Controllers\SettingsController;
 use App\Controllers\WebController;
 
 return [
@@ -30,10 +31,15 @@ return [
         'GET' => [ClientController::class, 'download'],
     ],
 
-    '#^api/apikey$#' => [
+    '#^api/api-key$#' => [
         'GET'  => [ApiKeyController::class, 'show'],
         'POST' => [ApiKeyController::class, 'create'],
         'PUT'  => [ApiKeyController::class, 'rotate'],
+    ],
+
+    '#^api/settings$#' => [
+        'GET' => [SettingsController::class, 'show'],
+        'PUT' => [SettingsController::class, 'update'],
     ],
 
 ];
