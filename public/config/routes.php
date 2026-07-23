@@ -1,30 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Controllers\ClientController;
 
 /**
  * Маршруты приложения.
- * Ключ - регулярное выражение, значение - массив обработчиков для каждого метода.
  *
- * @var array<string, array<string, array<class-string, string>>>
+ * @var array<string, array<string, array{0: class-string, 1: string}>>
  */
 return [
 
+    /*
+    |--------------------------------------------------------------------------
+    | Клиенты
+    |--------------------------------------------------------------------------
+    */
+
     '#^api/clients$#' => [
+
         'GET' => [
             ClientController::class,
             'list',
         ],
-    ],
 
-    '#^api/client$#' => [
         'POST' => [
             ClientController::class,
             'create',
         ],
     ],
 
-    '#^api/client/(?<id>\d+)$#' => [
+    '#^api/clients/(?<publicKey>[^/]+)$#' => [
 
         'GET' => [
             ClientController::class,
@@ -42,5 +48,12 @@ return [
         ],
     ],
 
-];
+    '#^api/clients/(?<publicKey>[^/]+)/config$#' => [
 
+        'GET' => [
+            ClientController::class,
+            'download',
+        ],
+    ],
+
+];

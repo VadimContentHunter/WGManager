@@ -7,7 +7,6 @@ namespace App\Controllers;
 use App\Services\ClientService;
 use App\Services\Request;
 use App\Services\Response;
-use Throwable;
 
 class ClientController
 {
@@ -52,20 +51,14 @@ class ClientController
      */
     public function create(): void
     {
-        try {
-            $client = $this->clients->create(
-                $this->request->body
-            );
+        $client = $this->clients->create(
+            $this->request->body
+        );
 
-            $this->response->success(
-                $client,
-                201
-            );
-        } catch (Throwable $e) {
-            $this->response->error(
-                $e->getMessage()
-            );
-        }
+        $this->response->success(
+            $client,
+            201
+        );
     }
 
     /**
@@ -73,26 +66,20 @@ class ClientController
      */
     public function update(): void
     {
-        try {
-            $client = $this->clients->update(
-                $this->request->route('publicKey'),
-                $this->request->body
+        $client = $this->clients->update(
+            $this->request->route('publicKey'),
+            $this->request->body
+        );
+
+        if ($client === null) {
+            $this->response->notFound(
+                'Клиент не найден.'
             );
 
-            if ($client === null) {
-                $this->response->notFound(
-                    'Клиент не найден.'
-                );
-
-                return;
-            }
-
-            $this->response->success($client);
-        } catch (Throwable $e) {
-            $this->response->error(
-                $e->getMessage()
-            );
+            return;
         }
+
+        $this->response->success($client);
     }
 
     /**
