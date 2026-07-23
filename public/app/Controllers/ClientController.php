@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Models\Client;
 use App\Services\Request;
 use App\Services\Response;
 
@@ -13,13 +14,18 @@ use App\Services\Response;
  */
 class ClientController
 {
+    private Client $client;
+
     /**
      * Запрос, полученный от клиента.
      */
     public function __construct(
         private Request $request,
         private Response $response,
-    ) {}
+    ) {
+        $this->client = new Client();
+    }
+
     /**
      * GET /api/clients
      * Получает список всех клиентов.
