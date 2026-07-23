@@ -2,46 +2,79 @@
 
 declare(strict_types=1);
 
-/**
- * Сервис для работы с API-ключами.
- *
- * @package App\Services
- */
 namespace App\Services;
 
 class ApiKeyService
 {
-    /**
-     * Генерирует новый API-ключ.
-     *
-     * @return string Сгенерированный API-ключ.
-     */
-    public function generate(): string
-    {
-        // Заглушка для метода generate()
-        return 'generated_api_key';
-    }
+    public function __construct(
+        private readonly SettingsService $settings,
+    ) {}
 
     /**
-     * Получает текущий API-ключ.
-     *
-     * @return string Текущий API-ключ.
+     * Возвращает текущий API-ключ.
      */
     public function get(): string
     {
-        // Заглушка для метода get()
-        return 'current_api_key';
+        return (string) $this->settings->get(
+            'apiKey',
+            ''
+        );
     }
 
     /**
-     * Проверяет валидность API-ключа.
-     *
-     * @param string $key API-ключ для проверки.
-     * @return bool True, если ключ действителен, false в противном случае.
+     * Проверяет API-ключ.
      */
-    public function validate(string $key): bool
+    public function validate(?string $key): bool
     {
-        // Заглушка для метода validate()
-        return $key === 'current_api_key';
+        $apiKey = $this->get();
+
+        if ($apiKey === '' || $key === null) {
+            return false;
+        }
+
+        return hash_equals(
+            $apiKey,
+            $key
+        );
+    }
+
+    /**
+     * Генерирует новый API-ключ.
+     */
+    public function generate(): string
+    {
+        $apiKey = bin2hex(
+            random_bytes(32)
+        );
+
+        $this->settings->set(
+            'apiKey',
+            $apiKey
+        );
+
+        $this->settings->save();
+
+        return $apiKey;
+    }
+
+    /**
+     * Проверяет, установлен ли API-ключ.
+     */
+    public function exists(): bool
+    {
+        return $this->get() !== '';
+    }
+
+    /**
+     * Удаляет API-ключ.
+     */
+    public function clear(): void
+    {
+        $this->settings->set(
+            'apiKey',
+            ''
+        );
+
+        $this->settings->save();
     }
 }
