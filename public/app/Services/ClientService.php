@@ -10,7 +10,6 @@ use RuntimeException;
 class ClientService
 {
     public function __construct(
-        private readonly SettingsService $settings,
         private readonly WireGuardService $wireGuard,
     ) {
         $this->wireGuard->load();
@@ -63,10 +62,7 @@ class ClientService
     /**
      * Обновить клиента.
      */
-    public function update(
-        string $publicKey,
-        array $data
-    ): ?array {
+    public function update( string $publicKey, array $data): ?array {
 
         $client = $this->wireGuard->getPeer(
             $publicKey
@@ -105,10 +101,7 @@ class ClientService
     /**
      * Удалить клиента.
      */
-    public function delete(
-        string $publicKey
-    ): bool {
-
+    public function delete(string $publicKey): bool {
         if (
             !$this->wireGuard->removePeer(
                 $publicKey
@@ -129,9 +122,7 @@ class ClientService
     private function getFreeIp(): string
     {
         $used = [];
-
         foreach ($this->wireGuard->getPeers() as $peer) {
-
             if (empty($peer['AllowedIPs'])) {
                 continue;
             }
@@ -143,9 +134,7 @@ class ClientService
         }
 
         for ($i = 2; $i <= 254; $i++) {
-
             $ip = "10.0.0.$i";
-
             if (!in_array($ip, $used, true)) {
                 return $ip;
             }
@@ -159,14 +148,25 @@ class ClientService
     /**
      * Проверка входных данных.
      */
-    private function validate(
-        array $data
-    ): void {
+    private function validate(array $data): void {
 
         if (empty($data['name'])) {
             throw new InvalidArgumentException(
                 'Не указано имя клиента.'
             );
         }
+    }
+
+    /**
+     * Скачать клиентскую конфигурацию.
+     */
+    public function download(string $publicKey): ?string
+    {
+        $client = $this->show($publicKey);
+        if ($client === null) {
+            return null;
+        }
+
+        return $this->wireGuard->buildClientConfig($client);
     }
 }

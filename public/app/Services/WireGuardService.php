@@ -25,6 +25,14 @@ class WireGuardService
     private const INTERFACE_LISTEN_PORT = 'ListenPort';
 
     /**
+     * Константы для настроек.
+     */
+    private const SETTING_ENDPOINT = 'endpoint';
+    private const SETTING_DNS = 'dns';
+    private const SETTING_ALLOWED_IPS = 'allowedIps';
+    private const SETTING_PERSISTENT_KEEPALIVE = 'persistentKeepalive';
+
+    /**
      * Ключи Peer.
      */
     private const PEER_NAME = 'Name';
@@ -166,6 +174,39 @@ class WireGuardService
         }
 
         return null;
+    }
+
+    /**
+     * Возвращает публичный ключ сервера.
+     */
+    public function getServerPublicKey(): string
+    {
+        $privateKey = $this->interface[self::INTERFACE_PRIVATE_KEY] ?? '';
+
+        if ($privateKey === '') {
+            throw new RuntimeException(
+                'Не указан PrivateKey интерфейса.'
+            );
+        }
+
+        return trim(
+            $this->executeCommand(
+                sprintf(
+                    'printf %%s %s | wg pubkey',
+                    escapeshellarg($privateKey)
+                )
+            )
+        );
+    }
+
+    /**
+     * Возвращает количество Peer.
+     *
+     * @return int
+     */
+    public function getPeersCount(): int
+    {
+        return count($this->peers);
     }
 
     /**
@@ -409,6 +450,38 @@ class WireGuardService
     }
 
     /**
+     * Формирует клиентскую конфигурацию WireGuard.
+     *
+     * @param array<string, string> $peer
+     *
+     * @return string
+     */
+    public function buildClientConfig(array $peer): string
+    {
+        $endpoint = $this->settings->get(self::SETTING_ENDPOINT);
+
+        if (empty($endpoint)) {
+            throw new RuntimeException(
+                'Не указан ' . self::SETTING_ENDPOINT . ' в settings.json.'
+            );
+        }
+
+        return implode(PHP_EOL, [
+            '[Interface]',
+            'PrivateKey = ' . ($peer[self::PEER_PRIVATE_KEY] ?? ''),
+            'Address = ' . ($peer[self::PEER_ALLOWED_IPS] ?? ''),
+            'DNS = ' . $this->settings->get(self::SETTING_DNS, '1.1.1.1'),
+            '',
+            '[Peer]',
+            'PublicKey = ' . $this->getServerPublicKey(),
+            'Endpoint = ' . $endpoint,
+            'AllowedIPs = ' . $this->settings->get(self::SETTING_ALLOWED_IPS, '0.0.0.0/0'),
+            'PersistentKeepalive = ' . $this->settings->get(self::SETTING_PERSISTENT_KEEPALIVE, '25'),
+            '',
+        ]) . PHP_EOL;
+    }
+
+    /**
      * Сохраняет конфигурацию WireGuard.
      *
      * @return void
@@ -481,16 +554,6 @@ class WireGuardService
             'privateKey' => $privateKey,
             'publicKey'  => $publicKey,
         ];
-    }
-
-    /**
-     * Возвращает количество Peer.
-     *
-     * @return int
-     */
-    public function getPeersCount(): int
-    {
-        return count($this->peers);
     }
 
     /**
