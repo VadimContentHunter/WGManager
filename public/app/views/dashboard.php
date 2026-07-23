@@ -93,17 +93,14 @@
         <div class="modal-header">
 
             <h2>
-
                 <i class="fa-solid fa-gear"></i>
-
                 Настройки
-
             </h2>
 
-            <button class="icon-button close-modal">
-
+            <button
+                id="settings-close"
+                class="icon-button">
                 <i class="fa-solid fa-xmark"></i>
-
             </button>
 
         </div>
@@ -113,59 +110,71 @@
             <h3>WireGuard</h3>
 
             <div class="field">
-
                 <label>Config Path</label>
-
-                <input id="config-path">
-
+                <input id="config-path" type="text">
             </div>
 
             <div class="field">
-
                 <label>Endpoint</label>
-
-                <input id="endpoint">
-
+                <input id="endpoint" type="text">
             </div>
 
             <div class="field">
-
                 <label>DNS</label>
-
-                <input id="dns">
-
+                <input id="dns" type="text">
             </div>
 
             <div class="field">
-
                 <label>Allowed IPs</label>
-
-                <input id="allowed-ips">
-
+                <input id="allowed-ips" type="text">
             </div>
 
             <div class="field">
-
                 <label>Persistent Keepalive</label>
-
-                <input id="persistent-keepalive">
-
+                <input id="persistent-keepalive" type="number">
             </div>
 
             <hr>
 
             <h3>API Key</h3>
 
-            <p id="api-key-status">
+            <div class="field">
 
-                Неизвестно
+                <label>Статус</label>
 
-            </p>
+                <p id="api-key-status">
+                    Не создан
+                </p>
 
-            <button id="api-key-button">
+            </div>
 
-                Создать
+            <div class="field">
 
+                <label>Ключ</label>
+
+                <input
+                    id="api-key"
+                    type="text"
+                    readonly>
+
+            </div>
+
+            <button id="generate-api-key">
+                <i class="fa-solid fa-key"></i>
+                Создать новый ключ
+            </button>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button id="settings-cancel">
+                Отмена
+            </button>
+
+            <button id="settings-save">
+                <i class="fa-solid fa-floppy-disk"></i>
+                Сохранить
             </button>
 
         </div>
