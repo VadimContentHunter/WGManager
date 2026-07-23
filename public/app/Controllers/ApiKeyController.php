@@ -32,9 +32,8 @@ class ApiKeyController
     public function create(): void
     {
         if ($this->apiKeys->exists()) {
-            $this->response->error(
-                'API-ключ уже существует.',
-                409
+            $this->response->conflict(
+                'API-ключ уже существует.'
             );
 
             return;

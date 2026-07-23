@@ -36,8 +36,7 @@ try {
     );
 } catch (Throwable $e) {
 
-    $response->error(
-        'Внутренняя ошибка сервера.',
-        500
+    $response->internalError(
+        $e->getMessage()
     );
 }

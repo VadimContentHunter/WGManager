@@ -118,6 +118,9 @@ class Response
                 $filename
             )
         );
+        header(
+            'Content-Length: ' . strlen($content)
+        );
 
         echo $content;
     }
@@ -143,5 +146,41 @@ class Response
         );
 
         exit;
+    }
+
+    /**
+     * Отправляет ответ 409 Conflict.
+     */
+    public function conflict(
+        string $message = 'Конфликт данных.'
+    ): void {
+        $this->error(
+            $message,
+            409
+        );
+    }
+
+    /**
+     * Отправляет ответ 400 Bad Request.
+     */
+    public function badRequest(
+        string $message = 'Некорректный запрос.'
+    ): void {
+        $this->error(
+            $message,
+            400
+        );
+    }
+
+    /**
+     * Отправляет ответ 500 Internal Server Error.
+     */
+    public function internalError(
+        string $message = 'Внутренняя ошибка сервера.'
+    ): void {
+        $this->error(
+            $message,
+            500
+        );
     }
 }
