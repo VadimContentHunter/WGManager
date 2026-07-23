@@ -1,77 +1,129 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-/**
- * Класс Client представляет собой модель для работы с клиентами.
- * Он предоставляет методы для получения, создания, обновления и удаления клиентов.
- */
+use App\Services\SettingsService;
+use App\Services\WireGuardService;
 
 class Client
 {
+    private SettingsService $settings;
+    private WireGuardService $wireGuard;
+
+    public function __construct()
+    {
+        $this->settings = new SettingsService();
+        $this->wireGuard = new WireGuardService();
+    }
+
     /**
-     * Получает все клиенты.
-     *
-     * @return array Массив всех клиентов.
+     * Получить список клиентов.
      */
     public function all(): array
     {
-        return [];
+        return $this->clients();
     }
 
     /**
-     * Получает информацию о конкретном клиенте по его идентификатору.
-     *
-     * @param string $id Идентификатор клиента.
-     * @return array Массив с информацией о клиенте.
+     * Получить клиента.
      */
-    public function show(string $id): array
+    public function show(string $id): ?array
     {
-        return [];
+        foreach ($this->clients() as $client) {
+            if ($client['id'] === $id) {
+                return $client;
+            }
+        }
+
+        return null;
     }
 
     /**
-     * Создает нового клиента.
-     *
-     * @param array $data Массив данных для создания клиента.
-     * @return array Массив с информацией о созданном клиенте.
+     * Создать клиента.
      */
     public function create(array $data): array
     {
-        return [];
+        $client = [
+            'id' => uniqid(),
+            'name' => $data['name'] ?? 'Client',
+            'ip' => $this->nextIp(),
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $clients = $this->clients();
+        $clients[] = $client;
+
+        return $client;
     }
 
     /**
-     * Обновляет информацию о клиенте по его идентификатору.
-     *
-     * @param string $id Идентификатор клиента.
-     * @param array $data Массив данных для обновления клиента.
-     * @return array Массив с информацией об обновленном клиенте.
+     * Обновить клиента.
      */
-    public function update(string $id, array $data): array
+    public function update(string $id, array $data): ?array
     {
-        return [];
+        foreach ($this->clients() as $client) {
+
+            if ($client['id'] !== $id) {
+                continue;
+            }
+
+            return array_merge($client, $data);
+        }
+
+        return null;
     }
 
     /**
-     * Удаляет клиента по его идентификатору.
-     *
-     * @param string $id Идентификатор клиента.
-     * @return bool true, если клиент был успешно удален, false в противном случае.
+     * Удалить клиента.
      */
     public function delete(string $id): bool
     {
+        foreach ($this->clients() as $client) {
+
+            if ($client['id'] === $id) {
+                return true;
+            }
+        }
+
         return false;
     }
 
     /**
-     * Скачивает файл, связанный с клиентом по его идентификатору.
-     *
-     * @param string $id Идентификатор клиента.
-     * @return string Путь к скачанному файлу.
+     * Скачать конфигурацию.
      */
     public function download(string $id): string
     {
-        return '';
+        return "/configs/{$id}.conf";
+    }
+
+    /**
+     * В будущем здесь будут данные SettingsService.
+     */
+    private function clients(): array
+    {
+        return [
+            [
+                'id' => '1',
+                'name' => 'Office',
+                'ip' => '10.0.0.2',
+                'created_at' => '2026-07-23 18:00:00'
+            ],
+            [
+                'id' => '2',
+                'name' => 'Phone',
+                'ip' => '10.0.0.3',
+                'created_at' => '2026-07-23 18:10:00'
+            ]
+        ];
+    }
+
+    /**
+     * Пока простая заглушка.
+     */
+    private function nextIp(): string
+    {
+        return '10.0.0.' . (count($this->clients()) + 2);
     }
 }

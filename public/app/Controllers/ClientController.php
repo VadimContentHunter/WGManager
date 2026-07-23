@@ -26,69 +26,49 @@ class ClientController
         $this->client = new Client();
     }
 
-    /**
-     * GET /api/clients
-     * Получает список всех клиентов.
-     */
     public function list(): void
     {
-        $this->response->json([
-            'status' => true,
-            'action' => 'list',
-        ]);
+        $this->response->json(
+            $this->client->all()
+        );
     }
 
-    /**
-     * GET /api/client/{id}
-     * Получает данные клиента по его ID.
-     */
     public function show(): void
     {
-        $this->response->json([
-            'status' => true,
-            'action' => 'show',
-            'id' => $this->request->route('id'),
-        ]);
+        $client = $this->client->show(
+            $this->request->route('id')
+        );
+
+        $this->response->json($client);
     }
 
-    /**
-     * POST /api/client
-     * Создает нового клиента.
-     */
     public function create(): void
     {
-        $this->response->json([
-            'status' => true,
-            'action' => 'create',
-            'body' => $this->request->body,
-        ]);
+        $client = $this->client->create(
+            $this->request->body
+        );
+
+        $this->response->json($client);
     }
 
-    /**
-     * PATCH /api/client/{id}
-     * Обновляет данные клиента по его ID.
-     */
     public function update(): void
     {
-        $this->response->json([
-            'status' => true,
-            'action' => 'update',
-            'id' => $this->request->route('id'),
-            'body' => $this->request->body,
-        ]);
+        $client = $this->client->update(
+            $this->request->route('id'),
+            $this->request->body
+        );
+
+        $this->response->json($client);
     }
 
-    /**
-     * DELETE /api/client/{id}
-     * Удаляет клиента по его ID.
-     */
     public function delete(): void
     {
+        $result = $this->client->delete(
+            $this->request->route('id')
+        );
+
         $this->response->json([
-            'status' => true,
-            'action' => 'delete',
-            'id' => $this->request->route('id'),
+            'deleted' => $result
         ]);
     }
 }
-
