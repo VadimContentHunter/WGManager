@@ -1,69 +1,53 @@
 <header class="header">
-    <h1>WGManager</h1>
+
+    <div class="logo">
+        <i class="fa-solid fa-shield-halved"></i>
+        WGManager
+    </div>
+
+    <button id="settings-button" class="icon-button">
+        <i class="fa-solid fa-gear"></i>
+        Настройки
+    </button>
+
 </header>
 
 <main class="container">
 
-    <section class="card" id="api-key">
+    <div id="notification" class="notification hidden">
 
-        <h2>API Key</h2>
+    </div>
 
-        <p id="api-key-status">
-            Статус: неизвестно
-        </p>
+    <section class="card">
 
-        <button id="api-key-button">
-            Загрузка...
-        </button>
+        <div class="card-header">
 
-    </section>
+            <h2>
+                <i class="fa-solid fa-users"></i>
+                Клиенты WireGuard
+            </h2>
 
-    <section class="card" id="settings">
+            <div class="actions">
 
-        <h2>Конфигурация WireGuard</h2>
+                <button id="refresh-clients">
+                    <i class="fa-solid fa-rotate"></i>
+                    Обновить
+                </button>
 
-        <div class="field">
-            <label>Config Path</label>
-            <input type="text" id="config-path">
-        </div>
+                <button id="create-client">
+                    <i class="fa-solid fa-plus"></i>
+                    Добавить
+                </button>
 
-        <div class="field">
-            <label>Endpoint</label>
-            <input type="text" id="endpoint">
-        </div>
-
-        <div class="field">
-            <label>DNS</label>
-            <input type="text" id="dns">
-        </div>
-
-        <div class="field">
-            <label>Allowed IPs</label>
-            <input type="text" id="allowed-ips">
-        </div>
-
-        <div class="field">
-            <label>Persistent Keepalive</label>
-            <input type="number" id="persistent-keepalive">
-        </div>
-
-        <button id="save-settings">
-            Сохранить
-        </button>
-
-    </section>
-
-    <section class="card" id="clients">
-
-        <div class="clients-header">
-
-            <h2>Клиенты WireGuard</h2>
-
-            <button id="create-client">
-                + Создать клиента
-            </button>
+            </div>
 
         </div>
+
+        <input
+            id="client-search"
+            class="search"
+            type="text"
+            placeholder="Поиск клиента...">
 
         <table>
 
@@ -84,6 +68,16 @@
 
             <tbody id="clients-table">
 
+                <tr>
+
+                    <td colspan="6" class="empty">
+
+                        Клиенты отсутствуют
+
+                    </td>
+
+                </tr>
+
             </tbody>
 
         </table>
@@ -91,6 +85,94 @@
     </section>
 
 </main>
+
+<div id="settings-modal" class="modal hidden">
+
+    <div class="modal-window">
+
+        <div class="modal-header">
+
+            <h2>
+
+                <i class="fa-solid fa-gear"></i>
+
+                Настройки
+
+            </h2>
+
+            <button class="icon-button close-modal">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+        <div class="modal-body">
+
+            <h3>WireGuard</h3>
+
+            <div class="field">
+
+                <label>Config Path</label>
+
+                <input id="config-path">
+
+            </div>
+
+            <div class="field">
+
+                <label>Endpoint</label>
+
+                <input id="endpoint">
+
+            </div>
+
+            <div class="field">
+
+                <label>DNS</label>
+
+                <input id="dns">
+
+            </div>
+
+            <div class="field">
+
+                <label>Allowed IPs</label>
+
+                <input id="allowed-ips">
+
+            </div>
+
+            <div class="field">
+
+                <label>Persistent Keepalive</label>
+
+                <input id="persistent-keepalive">
+
+            </div>
+
+            <hr>
+
+            <h3>API Key</h3>
+
+            <p id="api-key-status">
+
+                Неизвестно
+
+            </p>
+
+            <button id="api-key-button">
+
+                Создать
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 
 <div id="client-modal" class="modal hidden">
 
