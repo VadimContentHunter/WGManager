@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Controllers\ApiKeyController;
+use App\Controllers\ClientController;
+use App\Services\ApiKeyService;
+use App\Services\ClientService;
 use App\Services\Request;
 use App\Services\Response;
+use App\Services\SettingsService;
+use App\Services\WireGuardService;
 
 /**
  * Класс Router
@@ -73,11 +79,23 @@ class Router
 
             [$controller, $action] = $handlers[$method];
 
-            $controller = new $controller(
-                $request,
-                $response,
-                $clientService
-            );
+            $controller = match ($controller) {
+                ClientController::class => new $controller(
+                    $request,
+                    $response,
+                    $clientService
+                ),
+
+                ApiKeyController::class => new $controller(
+                    $request,
+                    $response,
+                    $apiKeys
+                ),
+
+                default => throw new \RuntimeException(
+                    "Неизвестный контроллер: {$controller}"
+                ),
+            };
 
             $controller->$action();
             return;
@@ -89,4 +107,3 @@ class Router
         ], 404);
     }
 }
-

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Controllers\ApiKeyController;
 use App\Controllers\ClientController;
 
 /**
@@ -10,6 +11,30 @@ use App\Controllers\ClientController;
  * @var array<string, array<string, array{0: class-string, 1: string}>>
  */
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Key
+    |--------------------------------------------------------------------------
+    */
+
+    '#^api/apikey$#' => [
+
+        'GET' => [
+            ApiKeyController::class,
+            'show',
+        ],
+
+        'POST' => [
+            ApiKeyController::class,
+            'create',
+        ],
+
+        'PUT' => [
+            ApiKeyController::class,
+            'rotate',
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------
