@@ -453,6 +453,37 @@ class WireGuardService
     }
 
     /**
+     * Генерирует пару ключей WireGuard.
+     *
+     * @return array{
+     *     privateKey: string,
+     *     publicKey: string
+     * }
+     *
+     * @throws RuntimeException
+     */
+    public function generateKeyPair(): array
+    {
+        $privateKey = trim(
+            $this->executeCommand('wg genkey')
+        );
+
+        $publicKey = trim(
+            $this->executeCommand(
+                sprintf(
+                    'printf %%s %s | wg pubkey',
+                    escapeshellarg($privateKey)
+                )
+            )
+        );
+
+        return [
+            'privateKey' => $privateKey,
+            'publicKey'  => $publicKey,
+        ];
+    }
+
+    /**
      * Возвращает количество Peer.
      *
      * @return int

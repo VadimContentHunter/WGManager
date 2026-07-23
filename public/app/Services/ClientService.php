@@ -4,33 +4,32 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use InvalidArgumentException;
+use RuntimeException;
+
 class ClientService
 {
     public function __construct(
         private readonly SettingsService $settings,
         private readonly WireGuardService $wireGuard,
-    ) {}
+    ) {
+        $this->wireGuard->load();
+    }
 
     /**
      * Получить список клиентов.
      */
     public function all(): array
     {
-        return $this->wireGuard->peers();
+        return $this->wireGuard->getPeers();
     }
 
     /**
-     * Получить клиента по ID.
+     * Получить клиента.
      */
-    public function show(string $id): ?array
+    public function show(string $publicKey): ?array
     {
-        foreach ($this->all() as $client) {
-            if ($client['id'] === $id) {
-                return $client;
-            }
-        }
-
-        return null;
+        return $this->wireGuard->getPeer($publicKey);
     }
 
     /**
@@ -39,18 +38,19 @@ class ClientService
     public function create(array $data): array
     {
         $this->validate($data);
-
-        if ($this->exists($data['name'])) {
-            throw new \RuntimeException('Клиент уже существует.');
+        $name = trim($data['name']);
+        if ($this->wireGuard->hasPeerName($name)) {
+            throw new RuntimeException(
+                'Клиент уже существует.'
+            );
         }
 
+        $keys = $this->wireGuard->generateKeyPair();
         $client = [
-            'id'         => uniqid(),
-            'name'       => trim($data['name']),
-            'privateKey' => $this->generatePrivateKey(),
-            'publicKey'  => $this->generatePublicKey(),
-            'ip'         => $this->getFreeIp(),
-            'created_at' => date('Y-m-d H:i:s'),
+            'Name'       => $name,
+            'PrivateKey' => $keys['privateKey'],
+            'PublicKey'  => $keys['publicKey'],
+            'AllowedIPs' => $this->getFreeIp() . '/32',
         ];
 
         $this->wireGuard->addPeer($client);
@@ -63,18 +63,36 @@ class ClientService
     /**
      * Обновить клиента.
      */
-    public function update(string $id, array $data): ?array
-    {
-        $client = $this->show($id);
+    public function update(
+        string $publicKey,
+        array $data
+    ): ?array {
+
+        $client = $this->wireGuard->getPeer(
+            $publicKey
+        );
 
         if ($client === null) {
             return null;
         }
 
-        $client = array_merge($client, $data);
+        if (
+            isset($data['Name'])
+            && $data['Name'] !== ($client['Name'] ?? '')
+            && $this->wireGuard->hasPeerName($data['Name'])
+        ) {
+            throw new RuntimeException(
+                'Клиент с таким именем уже существует.'
+            );
+        }
+
+        $client = array_merge(
+            $client,
+            $data
+        );
 
         $this->wireGuard->updatePeer(
-            $client['publicKey'],
+            $publicKey,
             $client
         );
 
@@ -87,50 +105,22 @@ class ClientService
     /**
      * Удалить клиента.
      */
-    public function delete(string $id): bool
-    {
-        $client = $this->show($id);
+    public function delete(
+        string $publicKey
+    ): bool {
 
-        if ($client === null) {
+        if (
+            !$this->wireGuard->removePeer(
+                $publicKey
+            )
+        ) {
             return false;
         }
-
-        $this->wireGuard->removePeer(
-            $client['publicKey']
-        );
 
         $this->wireGuard->save();
         $this->wireGuard->apply();
 
         return true;
-    }
-
-    /**
-     * Скачать клиентский конфиг.
-     */
-    // public function download(string $id): ?string
-    // {
-    //     $client = $this->show($id);
-
-    //     if ($client === null) {
-    //         return null;
-    //     }
-
-    //     return $this->wireGuard->buildClientConfig($client);
-    // }
-
-    /**
-     * Проверить существование клиента.
-     */
-    private function exists(string $name): bool
-    {
-        foreach ($this->all() as $client) {
-            if (strcasecmp($client['name'], $name) === 0) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -140,8 +130,16 @@ class ClientService
     {
         $used = [];
 
-        foreach ($this->all() as $client) {
-            $used[] = $client['ip'];
+        foreach ($this->wireGuard->getPeers() as $peer) {
+
+            if (empty($peer['AllowedIPs'])) {
+                continue;
+            }
+
+            $used[] = explode(
+                '/',
+                $peer['AllowedIPs']
+            )[0];
         }
 
         for ($i = 2; $i <= 254; $i++) {
@@ -153,34 +151,22 @@ class ClientService
             }
         }
 
-        throw new \RuntimeException('Свободных IP нет.');
+        throw new RuntimeException(
+            'Свободных IP нет.'
+        );
     }
 
     /**
      * Проверка входных данных.
      */
-    private function validate(array $data): void
-    {
+    private function validate(
+        array $data
+    ): void {
+
         if (empty($data['name'])) {
-            throw new \InvalidArgumentException('Не указано имя клиента.');
+            throw new InvalidArgumentException(
+                'Не указано имя клиента.'
+            );
         }
-    }
-
-    /**
-     * Генерация приватного ключа.
-     * Пока заглушка.
-     */
-    private function generatePrivateKey(): string
-    {
-        return bin2hex(random_bytes(32));
-    }
-
-    /**
-     * Генерация публичного ключа.
-     * Пока заглушка.
-     */
-    private function generatePublicKey(): string
-    {
-        return hash('sha256', random_bytes(32));
     }
 }

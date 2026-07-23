@@ -14,7 +14,6 @@ use App\Services\Response;
  */
 class ClientController
 {
-    private Client $client;
 
     /**
      * Запрос, полученный от клиента.
@@ -23,7 +22,6 @@ class ClientController
         private Request $request,
         private Response $response,
     ) {
-        $this->client = new Client();
     }
 
     public function list(): void
