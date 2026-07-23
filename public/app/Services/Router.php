@@ -6,12 +6,8 @@ namespace App\Services;
 
 use App\Controllers\ApiKeyController;
 use App\Controllers\ClientController;
-use App\Services\ApiKeyService;
-use App\Services\ClientService;
-use App\Services\Request;
-use App\Services\Response;
-use App\Services\SettingsService;
-use App\Services\WireGuardService;
+use App\Controllers\WebController;
+use RuntimeException;
 
 /**
  * Класс Router
@@ -20,24 +16,25 @@ use App\Services\WireGuardService;
 class Router
 {
     /**
-     * Маршруты, определенные в конфигурации.
-     * Ключ - регулярное выражение, значение - массив обработчиков для каждого метода.
-     *
-     * @var array<string, array<string, array<class-string, string>>>
+     * @param array<string, array<string, array<class-string, string>>> $routes
      */
     public function __construct(
         private array $routes,
     ) {}
 
     /**
-     * Обрабатывает текущий HTTP-запрос, сопоставляя его с маршрутом и вызывая соответствующий обработчик.
+     * Обрабатывает текущий HTTP-запрос.
      */
     public function dispatch(): void
     {
         $method = $_SERVER['REQUEST_METHOD'];
-        $uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+        $uri = trim(
+            parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH),
+            '/'
+        );
 
         foreach ($this->routes as $pattern => $handlers) {
+
             if (!preg_match($pattern, $uri, $matches)) {
                 continue;
             }
@@ -62,12 +59,11 @@ class Router
             $response = new Response();
 
             $settings = new SettingsService();
-            $wireGuard = new WireGuardService($settings);
-            $clientService = new ClientService($wireGuard);
             $apiKeys = new ApiKeyService($settings);
 
             if (
-                $apiKeys->exists()
+                str_starts_with($uri, 'api/')
+                && $apiKeys->exists()
                 && !$apiKeys->validate(
                     $request->header('X-API-Key')
                 )
@@ -78,21 +74,26 @@ class Router
             }
 
             [$controller, $action] = $handlers[$method];
-
             $controller = match ($controller) {
-                ClientController::class => new $controller(
-                    $request,
-                    $response,
-                    $clientService
+                WebController::class => new WebController(
+                    $response
                 ),
 
-                ApiKeyController::class => new $controller(
+                ClientController::class => new ClientController(
+                    $request,
+                    $response,
+                    new ClientService(
+                        new WireGuardService($settings)
+                    )
+                ),
+
+                ApiKeyController::class => new ApiKeyController(
                     $request,
                     $response,
                     $apiKeys
                 ),
 
-                default => throw new \RuntimeException(
+                default => throw new RuntimeException(
                     "Неизвестный контроллер: {$controller}"
                 ),
             };
