@@ -459,3 +459,57 @@ tbody tr:hover {
         width: calc(100% - 20px);
     }
 }
+
+
+.action {
+
+    width: 36px;
+
+    height: 36px;
+
+    padding: 0;
+
+    margin-right: 5px;
+}
+
+.action i {
+
+    margin: 0;
+}
+
+.download {
+
+    background: #16a34a;
+}
+
+.download:hover {
+
+    background: #15803d;
+}
+
+.edit {
+
+    background: #2563eb;
+}
+
+.edit:hover {
+
+    background: #1d4ed8;
+}
+
+.delete {
+
+    background: #dc2626;
+}
+
+.delete:hover {
+
+    background: #b91c1c;
+}
+
+.notification.info {
+
+    background: #dbeafe;
+
+    color: #1e3a8a;
+}
