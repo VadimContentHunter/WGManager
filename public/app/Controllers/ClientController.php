@@ -4,69 +4,139 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Models\Client;
+use App\Services\ClientService;
 use App\Services\Request;
 use App\Services\Response;
+use Throwable;
 
-/**
- * Контроллер для работы с клиентами.
- * Обрабатывает HTTP-запросы, связанные с CRUD операциями над клиентами.
- */
 class ClientController
 {
+    public function __construct(
+        private readonly Request $request,
+        private readonly Response $response,
+        private readonly ClientService $clients,
+    ) {}
 
     /**
-     * Запрос, полученный от клиента.
+     * Получить список клиентов.
      */
-    public function __construct(
-        private Request $request,
-        private Response $response,
-    ) {
-    }
-
     public function list(): void
     {
-        $this->response->json(
-            $this->client->all()
+        $this->response->success(
+            $this->clients->all()
         );
     }
 
+    /**
+     * Получить клиента.
+     */
     public function show(): void
     {
-        $client = $this->client->show(
-            $this->request->route('id')
+        $client = $this->clients->show(
+            $this->request->route('publicKey')
         );
 
-        $this->response->json($client);
+        if ($client === null) {
+            $this->response->notFound(
+                'Клиент не найден.'
+            );
+
+            return;
+        }
+
+        $this->response->success($client);
     }
 
+    /**
+     * Создать клиента.
+     */
     public function create(): void
     {
-        $client = $this->client->create(
-            $this->request->body
-        );
+        try {
+            $client = $this->clients->create(
+                $this->request->body
+            );
 
-        $this->response->json($client);
+            $this->response->success(
+                $client,
+                201
+            );
+        } catch (Throwable $e) {
+            $this->response->error(
+                $e->getMessage()
+            );
+        }
     }
 
+    /**
+     * Обновить клиента.
+     */
     public function update(): void
     {
-        $client = $this->client->update(
-            $this->request->route('id'),
-            $this->request->body
-        );
+        try {
+            $client = $this->clients->update(
+                $this->request->route('publicKey'),
+                $this->request->body
+            );
 
-        $this->response->json($client);
+            if ($client === null) {
+                $this->response->notFound(
+                    'Клиент не найден.'
+                );
+
+                return;
+            }
+
+            $this->response->success($client);
+        } catch (Throwable $e) {
+            $this->response->error(
+                $e->getMessage()
+            );
+        }
     }
 
+    /**
+     * Удалить клиента.
+     */
     public function delete(): void
     {
-        $result = $this->client->delete(
-            $this->request->route('id')
+        if (
+            !$this->clients->delete(
+                $this->request->route('publicKey')
+            )
+        ) {
+            $this->response->notFound(
+                'Клиент не найден.'
+            );
+
+            return;
+        }
+
+        $this->response->success([
+            'message' => 'Клиент успешно удалён.',
+        ]);
+    }
+
+    /**
+     * Скачать конфигурацию клиента.
+     */
+    public function download(): void
+    {
+        $config = $this->clients->download(
+            $this->request->route('publicKey')
         );
 
-        $this->response->json([
-            'deleted' => $result
-        ]);
+        if ($config === null) {
+            $this->response->notFound(
+                'Клиент не найден.'
+            );
+
+            return;
+        }
+
+        $this->response->download(
+            $config,
+            'client.conf'
+        );
     }
 }

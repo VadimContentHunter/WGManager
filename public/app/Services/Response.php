@@ -5,16 +5,19 @@ declare(strict_types=1);
 namespace App\Services;
 
 /**
- * Класс Response
- * Представляет HTTP-ответ, включая методы для отправки JSON, HTML и перенаправления.
+ * Класс Response.
+ *
+ * Представляет HTTP-ответ приложения.
  */
 class Response
 {
     /**
-     * Отправляет JSON-ответ с указанными данными.
+     * Отправляет JSON-ответ.
      */
-    public function json(array $data, int $status = 200): void
-    {
+    public function json(
+        mixed $data,
+        int $status = 200
+    ): void {
         http_response_code($status);
 
         header('Content-Type: application/json; charset=utf-8');
@@ -26,27 +29,119 @@ class Response
     }
 
     /**
-     * Отправляет HTML-ответ с указанным содержимым.
+     * Отправляет успешный JSON-ответ.
      */
-    public function html(string $html, int $status = 200): void
-    {
+    public function success(
+        mixed $data = null,
+        int $status = 200
+    ): void {
+        $this->json([
+            'success' => true,
+            'data' => $data,
+        ], $status);
+    }
+
+    /**
+     * Отправляет ответ с ошибкой.
+     */
+    public function error(
+        string $message,
+        int $status = 400
+    ): void {
+        $this->json([
+            'success' => false,
+            'message' => $message,
+        ], $status);
+    }
+
+    /**
+     * Отправляет ответ 401 Unauthorized.
+     */
+    public function unauthorized(
+        string $message = 'Неверный API ключ.'
+    ): void {
+        $this->error(
+            $message,
+            401
+        );
+    }
+
+    /**
+     * Отправляет ответ 403 Forbidden.
+     */
+    public function forbidden(
+        string $message = 'Доступ запрещён.'
+    ): void {
+        $this->error(
+            $message,
+            403
+        );
+    }
+
+    /**
+     * Отправляет ответ 404 Not Found.
+     */
+    public function notFound(
+        string $message = 'Не найдено.'
+    ): void {
+        $this->error(
+            $message,
+            404
+        );
+    }
+
+    /**
+     * Отправляет HTML.
+     */
+    public function html(
+        string $html,
+        int $status = 200
+    ): void {
         http_response_code($status);
-
         header('Content-Type: text/html; charset=utf-8');
-
         echo $html;
     }
 
     /**
-     * Перенаправляет пользователя на указанный URL.
+     * Отправляет файл пользователю.
      */
-    public function redirect(string $url, int $status = 302): never
-    {
-        http_response_code($status);
+    public function download(
+        string $content,
+        string $filename,
+        string $contentType = 'text/plain'
+    ): void {
+        http_response_code(200);
+        header('Content-Type: ' . $contentType . '; charset=utf-8');
+        header(
+            sprintf(
+                'Content-Disposition: attachment; filename="%s"',
+                $filename
+            )
+        );
 
-        header("Location: {$url}");
+        echo $content;
+    }
+
+    /**
+     * Отправляет пустой ответ.
+     */
+    public function noContent(): void
+    {
+        http_response_code(204);
+    }
+
+    /**
+     * Перенаправляет пользователя.
+     */
+    public function redirect(
+        string $url,
+        int $status = 302
+    ): never {
+        http_response_code($status);
+        header(
+            "Location: {$url}"
+        );
 
         exit;
     }
 }
-
