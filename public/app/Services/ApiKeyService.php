@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use RuntimeException;
+
 class ApiKeyService
 {
     public function __construct(
@@ -76,5 +78,30 @@ class ApiKeyService
         );
 
         $this->settings->save();
+    }
+
+    /**
+     * Генерирует новый API-ключ.
+     */
+    public function rotate(): string
+    {
+        if (!$this->exists()) {
+            throw new RuntimeException(
+                'API-ключ отсутствует.'
+            );
+        }
+
+        $apiKey = bin2hex(
+            random_bytes(32)
+        );
+
+        $this->settings->set(
+            'apiKey',
+            $apiKey
+        );
+
+        $this->settings->save();
+
+        return $apiKey;
     }
 }
