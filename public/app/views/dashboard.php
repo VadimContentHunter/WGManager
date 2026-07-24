@@ -183,6 +183,34 @@
 
 </div>
 
+<!-- Авторизация -->
+<div id="api-key-modal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <h2>Авторизация</h2>
+
+        <p>
+            Введите API-ключ для доступа к панели управления.
+        </p>
+
+        <input
+            id="api-key-input"
+            type="password"
+            placeholder="API-ключ">
+
+        <div class="modal-actions">
+
+            <button id="api-key-login">
+                Войти
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
 <div id="client-modal" class="modal hidden">
 
 </div>

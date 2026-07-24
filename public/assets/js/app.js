@@ -1,16 +1,17 @@
 class App {
 
-   constructor() {
+    constructor() {
+
         this.initComponents();
         this.registerEvents();
+
     }
 
     initComponents() {
+
         this.api = new Api();
 
-        this.notify = new Notify(
-            document.getElementById('notification')
-        );
+        this.notify = new Notify();
 
         this.clientTable = new ClientTable(
             document.getElementById('clients-table'),
@@ -22,12 +23,19 @@ class App {
             this.notify
         );
 
+        this.apiKeyModal = new ApiKeyModal(
+            this.api,
+            this.notify
+        );
+
         this.refreshButton = document.getElementById(
             'refresh-clients'
         );
+
     }
 
     registerEvents() {
+
         this.refreshButton.addEventListener(
             'click',
             () => this.loadClients()
@@ -40,24 +48,44 @@ class App {
             action,
             client
         );
+
     }
 
     async init() {
+
+        if (!this.api.apiKey) {
+
+            this.apiKeyModal.open();
+
+            return;
+
+        }
+
         await this.settingsModal.load();
         await this.loadClients();
+
     }
 
     async loadClients() {
+
         try {
+
             const clients = await this.api.get(
                 '/api/clients'
             );
 
-            this.clientTable.setClients(clients);
+            this.clientTable.setClients(
+                clients
+            );
 
         } catch (e) {
-            this.notify.error(e.message);
+
+            this.notify.error(
+                e.message
+            );
+
         }
+
     }
 
     async handleClientAction(action, client) {
@@ -72,10 +100,13 @@ class App {
 
             case 'delete':
                 return this.deleteClient(client);
+
         }
+
     }
 
     async downloadClient(client) {
+
         try {
 
             await this.api.download(
@@ -84,22 +115,31 @@ class App {
             );
 
         } catch (e) {
-            this.notify.error(e.message);
+
+            this.notify.error(
+                e.message
+            );
+
         }
+
     }
 
     editClient(client) {
+
         console.log(
             'Edit client:',
             client
         );
+
     }
 
     async deleteClient(client) {
+
         console.log(
             'Delete client:',
             client
         );
+
     }
 
 }
@@ -109,5 +149,6 @@ document.addEventListener(
     async () => {
         const app = new App();
         await app.init();
+
     }
 );

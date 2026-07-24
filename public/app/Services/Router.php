@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Controllers\ApiKeyController;
+use App\Controllers\AuthController;
 use App\Controllers\ClientController;
 use App\Controllers\SettingsController;
 use App\Controllers\WebController;
 use RuntimeException;
 
 /**
- * Класс Router
- * Обрабатывает маршрутизацию запросов в приложении.
+ * Класс Router.
+ *
+ * Обрабатывает маршрутизацию HTTP-запросов.
  */
 class Router
 {
@@ -20,7 +22,7 @@ class Router
      * @param array<string, array<string, array<class-string, string>>> $routes
      */
     public function __construct(
-        private array $routes,
+        private readonly array $routes,
     ) {}
 
     /**
@@ -29,8 +31,12 @@ class Router
     public function dispatch(): void
     {
         $method = $_SERVER['REQUEST_METHOD'];
+
         $uri = trim(
-            parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH),
+            parse_url(
+                $_SERVER['REQUEST_URI'],
+                PHP_URL_PATH
+            ),
             '/'
         );
 
@@ -41,16 +47,19 @@ class Router
             }
 
             if (!isset($handlers[$method])) {
-                (new Response())->json([
-                    'status'  => false,
-                    'message' => 'Method Not Allowed',
-                ], 405);
+
+                (new Response())->error(
+                    'Method Not Allowed',
+                    405
+                );
 
                 return;
             }
 
             $route = [];
+
             foreach ($matches as $key => $value) {
+
                 if (!is_int($key)) {
                     $route[$key] = $value;
                 }
@@ -63,19 +72,21 @@ class Router
             $apiKeys = new ApiKeyService($settings);
 
             if (
-                str_starts_with($uri, 'api/')
-                && $apiKeys->exists()
-                && !$apiKeys->validate(
-                    $request->header('X-API-Key')
+                !$this->authorize(
+                    $uri,
+                    $method,
+                    $request,
+                    $response,
+                    $apiKeys
                 )
             ) {
-                $response->unauthorized();
-
                 return;
             }
 
             [$controller, $action] = $handlers[$method];
+
             $controller = match ($controller) {
+
                 WebController::class => new WebController(
                     $response
                 ),
@@ -100,18 +111,78 @@ class Router
                     $settings
                 ),
 
+                AuthController::class => new AuthController(
+                    $response
+                ),
+
                 default => throw new RuntimeException(
                     "Неизвестный контроллер: {$controller}"
                 ),
             };
 
             $controller->$action();
+
             return;
         }
 
-        (new Response())->json([
-            'status'  => false,
-            'message' => 'Route Not Found',
-        ], 404);
+        (new Response())->notFound();
+    }
+
+    /**
+     * Проверяет авторизацию API.
+     */
+    private function authorize(
+        string $uri,
+        string $method,
+        Request $request,
+        Response $response,
+        ApiKeyService $apiKeys
+    ): bool {
+
+        if (
+            !$this->requiresAuthorization(
+                $uri,
+                $method
+            )
+        ) {
+            return true;
+        }
+
+        if (!$apiKeys->exists()) {
+            return true;
+        }
+
+        if (
+            $apiKeys->validate(
+                $request->header('X-API-Key')
+            )
+        ) {
+            return true;
+        }
+
+        $response->unauthorized();
+
+        return false;
+    }
+
+    /**
+     * Определяет, требуется ли авторизация.
+     */
+    private function requiresAuthorization(
+        string $uri,
+        string $method
+    ): bool {
+
+        if (
+            $uri === 'api/api-key'
+            && $method === 'POST'
+        ) {
+            return false;
+        }
+
+        return str_starts_with(
+            $uri,
+            'api/'
+        );
     }
 }

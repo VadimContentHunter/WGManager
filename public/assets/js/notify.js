@@ -1,94 +1,80 @@
 class Notify {
 
-    constructor(element) {
+    constructor() {
 
-        this.element = element;
+        this.container = document.getElementById(
+            'notify'
+        );
 
-        this.timeout = null;
     }
 
-    /**
-     * Успешное сообщение.
-     */
     success(message) {
 
         this.show(
             message,
             'success'
         );
+
     }
 
-    /**
-     * Ошибка.
-     */
     error(message) {
 
         this.show(
             message,
             'error'
         );
+
     }
 
-    /**
-     * Предупреждение.
-     */
     warning(message) {
 
         this.show(
             message,
             'warning'
         );
+
     }
 
-    /**
-     * Информация.
-     */
     info(message) {
 
         this.show(
             message,
             'info'
         );
+
     }
 
-    /**
-     * Показать уведомление.
-     */
     show(message, type = 'info') {
 
-        clearTimeout(
-            this.timeout
-        );
+        this.container.innerHTML = `
+            <div class="notify notify-${type}">
+                <span class="notify-message">
+                    ${message}
+                </span>
 
-        this.element.className =
-            `notification ${type}`;
+                <button
+                    class="notify-close"
+                    type="button"
+                    aria-label="Закрыть"
+                >
+                    &times;
+                </button>
+            </div>
+        `;
 
-        this.element.textContent =
-            message;
+        this.container
+            .querySelector('.notify-close')
+            .addEventListener(
+                'click',
+                () => this.hide()
+            );
 
-        this.element.classList.remove(
-            'hidden'
-        );
-
-        this.timeout = setTimeout(
-            () => this.hide(),
-            5000
-        );
     }
 
-    /**
-     * Скрыть уведомление.
-     */
     hide() {
 
-        clearTimeout(
-            this.timeout
-        );
+        this.container.innerHTML = '';
 
-        this.element.classList.add(
-            'hidden'
-        );
-
-        this.element.textContent = '';
     }
+
 }

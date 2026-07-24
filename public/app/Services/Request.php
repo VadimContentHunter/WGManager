@@ -121,9 +121,18 @@ class Request
     /**
      * Возвращает HTTP-заголовок.
      */
-    public function header(string $key, mixed $default = null): mixed
-    {
-        return $this->headers[$key] ?? $default;
+    public function header(
+        string $key,
+        mixed $default = null
+    ): mixed {
+        foreach ($this->headers as $name => $value) {
+
+            if (strcasecmp($name, $key) === 0) {
+                return $value;
+            }
+        }
+
+        return $default;
     }
 
     /**

@@ -513,3 +513,79 @@ tbody tr:hover {
 
     color: #1e3a8a;
 }
+
+#notify {
+
+    position: fixed;
+
+    top: 20px;
+    right: 20px;
+
+    z-index: 9999;
+
+}
+
+.notify {
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-width: 320px;
+    max-width: 500px;
+
+    padding: 14px 18px;
+
+    border-radius: 8px;
+
+    color: #fff;
+
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .2);
+
+}
+
+.notify-success {
+
+    background: #2e7d32;
+
+}
+
+.notify-error {
+
+    background: #c62828;
+
+}
+
+.notify-warning {
+
+    background: #ed6c02;
+
+}
+
+.notify-info {
+
+    background: #1565c0;
+
+}
+
+.notify-message {
+
+    flex: 1;
+
+}
+
+.notify-close {
+
+    background: transparent;
+    border: none;
+
+    color: inherit;
+
+    cursor: pointer;
+
+    font-size: 22px;
+    line-height: 1;
+
+    padding: 0;
+
+}

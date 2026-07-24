@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Controllers\ApiKeyController;
+use App\Controllers\AuthController;
 use App\Controllers\ClientController;
 use App\Controllers\SettingsController;
 use App\Controllers\WebController;
@@ -35,6 +36,13 @@ return [
         'GET'  => [ApiKeyController::class, 'show'],
         'POST' => [ApiKeyController::class, 'create'],
         'PUT'  => [ApiKeyController::class, 'rotate'],
+    ],
+
+    '#^api/auth/check$#' => [
+        'GET' => [
+            AuthController::class,
+            'check',
+        ],
     ],
 
     '#^api/settings$#' => [
