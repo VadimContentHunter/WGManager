@@ -1,6 +1,7 @@
 class SettingsModal {
 
     constructor(api, notify) {
+
         this.api = api;
         this.notify = notify;
 
@@ -11,7 +12,7 @@ class SettingsModal {
         this.cancelButton = document.getElementById('settings-cancel');
         this.saveButton = document.getElementById('settings-save');
 
-        this.generateApiKeyButton = document.getElementById(
+        this.rotateApiKeyButton = document.getElementById(
             'generate-api-key'
         );
 
@@ -53,9 +54,9 @@ class SettingsModal {
             () => this.save()
         );
 
-        this.generateApiKeyButton.addEventListener(
+        this.rotateApiKeyButton.addEventListener(
             'click',
-            () => this.generateApiKey()
+            () => this.rotateApiKey()
         );
 
         this.modal.addEventListener(
@@ -85,19 +86,23 @@ class SettingsModal {
     }
 
     async load() {
+
         await Promise.all([
             this.loadSettings(),
             this.loadApiKey()
         ]);
+
     }
 
     async open() {
+
         await this.load();
 
         this.modal.classList.remove('hidden');
     }
 
     close() {
+
         this.modal.classList.add('hidden');
     }
 
@@ -151,7 +156,7 @@ class SettingsModal {
             );
 
             this.notify.success(
-                'Настройки сохранены'
+                'Настройки сохранены.'
             );
 
             this.close();
@@ -175,16 +180,15 @@ class SettingsModal {
             );
 
             this.apiKey.value =
-                result.ApiKey ?? '';
+                result.apiKey ?? '';
 
             this.apiKeyStatus.textContent =
-                result.ApiKey
+                result.apiKey
                     ? 'Создан'
                     : 'Не создан';
 
-            if (result.ApiKey) {
-                this.api.apiKey = result.ApiKey;
-            }
+            this.api.apiKey =
+                result.apiKey ?? null;
 
         } catch (e) {
 
@@ -196,24 +200,25 @@ class SettingsModal {
 
     }
 
-    async generateApiKey() {
+    async rotateApiKey() {
 
         try {
 
-            const result = await this.api.post(
+            const result = await this.api.put(
                 '/api/api-key'
             );
 
             this.apiKey.value =
-                result.ApiKey;
+                result.apiKey;
 
             this.apiKeyStatus.textContent =
                 'Создан';
 
-            this.api.apiKey = result.ApiKey;
+            this.api.apiKey =
+                result.apiKey;
 
             this.notify.success(
-                'API Key успешно создан'
+                'API-ключ успешно обновлён.'
             );
 
         } catch (e) {

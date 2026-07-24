@@ -41,30 +41,35 @@ class ApiKeyService
     }
 
     /**
-     * Генерирует новый API-ключ.
-     */
-    public function generate(): string
-    {
-        $apiKey = bin2hex(
-            random_bytes(32)
-        );
-
-        $this->settings->set(
-            'apiKey',
-            $apiKey
-        );
-
-        $this->settings->save();
-
-        return $apiKey;
-    }
-
-    /**
      * Проверяет, установлен ли API-ключ.
      */
     public function exists(): bool
     {
         return $this->get() !== '';
+    }
+
+    /**
+     * Создаёт новый API-ключ.
+     *
+     * Если ключ уже существует — выбрасывает исключение.
+     */
+    public function generate(): string
+    {
+        if ($this->exists()) {
+            throw new RuntimeException(
+                'API-ключ уже существует.'
+            );
+        }
+
+        return $this->createKey();
+    }
+
+    /**
+     * Пересоздаёт API-ключ.
+     */
+    public function rotate(): string
+    {
+        return $this->createKey();
     }
 
     /**
@@ -81,16 +86,10 @@ class ApiKeyService
     }
 
     /**
-     * Генерирует новый API-ключ.
+     * Создаёт и сохраняет новый API-ключ.
      */
-    public function rotate(): string
+    private function createKey(): string
     {
-        if (!$this->exists()) {
-            throw new RuntimeException(
-                'API-ключ отсутствует.'
-            );
-        }
-
         $apiKey = bin2hex(
             random_bytes(32)
         );

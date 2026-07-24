@@ -150,7 +150,7 @@ class Api {
             );
         }
 
-        return data?.data ?? data;
+        return data;
     }
 
     /**

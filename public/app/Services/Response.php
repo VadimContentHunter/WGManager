@@ -28,22 +28,26 @@ class Response
         );
     }
 
-    /**
-     * Отправляет успешный JSON-ответ.
-     */
     public function success(
         mixed $data = null,
         int $status = 200
     ): void {
-        $this->json([
+        $response = [
             'success' => true,
-            'data' => $data,
-        ], $status);
+        ];
+
+        if (is_array($data)) {
+            $response += $data;
+        } elseif ($data !== null) {
+            $response['data'] = $data;
+        }
+
+        $this->json(
+            $response,
+            $status
+        );
     }
 
-    /**
-     * Отправляет ответ с ошибкой.
-     */
     public function error(
         string $message,
         int $status = 400

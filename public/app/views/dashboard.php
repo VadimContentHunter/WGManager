@@ -161,7 +161,7 @@
 
             <button id="generate-api-key">
                 <i class="fa-solid fa-key"></i>
-                Создать новый ключ
+                Пересоздать новый ключ
             </button>
 
         </div>
