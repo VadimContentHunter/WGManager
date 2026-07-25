@@ -92,18 +92,34 @@
 
             <div class="field-row">
                 <div class="field">
-                    <label for="endpoint">Endpoint</label>
+                    <label for="server">
+                        Server
+                    </label>
+
                     <input
-                        id="endpoint"
+                        id="server"
                         type="text">
                 </div>
 
                 <div class="field">
-                    <label for="dns">DNS</label>
+                    <label for="server-port">
+                        Server Port
+                    </label>
+
                     <input
-                        id="dns"
-                        type="text">
+                        id="server-port"
+                        type="number"
+                        min="1"
+                        max="65535">
                 </div>
+            </div>
+
+            <div class="field">
+                <label for="dns">
+                    DNS
+                </label>
+
+                <input id="dns" type="text">
             </div>
 
             <div class="field-row">

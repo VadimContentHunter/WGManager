@@ -27,7 +27,8 @@ class WireGuardService
     /**
      * Константы для настроек.
      */
-    private const SETTING_ENDPOINT = 'endpoint';
+    private const SETTING_SERVER = 'server';
+    private const SETTING_SERVER_PORT = 'serverPort';
     private const SETTING_DNS = 'dns';
     private const SETTING_ALLOWED_IPS = 'allowedIps';
     private const SETTING_PERSISTENT_KEEPALIVE = 'persistentKeepalive';
@@ -604,14 +605,10 @@ class WireGuardService
      */
     public function buildClientConfig(array $peer): string
     {
-        $endpoint = $this->settings->get(self::SETTING_ENDPOINT);
-
-        if (empty($endpoint)) {
-            throw new RuntimeException(
-                'Не указан ' . self::SETTING_ENDPOINT . ' в settings.json.'
-            );
-        }
-
+        $server = trim($this->settings->get(self::SETTING_SERVER, '127.0.0.1'));
+        $serverPort = (int) $this->settings->get(self::SETTING_SERVER_PORT,51820);
+        $endpoint = sprintf('%s:%d',$server,$serverPort);
+        
         return implode(PHP_EOL, [
             '[Interface]',
             'PrivateKey = ' . ($peer[self::PEER_PRIVATE_KEY] ?? ''),

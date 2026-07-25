@@ -18,7 +18,8 @@ class SettingsModal {
 
         this.configPath = document.getElementById('config-path');
         this.clientsPath = document.getElementById('clients-path');
-        this.endpoint = document.getElementById('endpoint');
+        this.server = document.getElementById('server');
+        this.serverPort = document.getElementById('server-port');
         this.dns = document.getElementById('dns');
         this.allowedIps = document.getElementById('allowed-ips');
         this.persistentKeepalive = document.getElementById('persistent-keepalive');
@@ -95,7 +96,8 @@ class SettingsModal {
 
         this.configPath.value = settings.configPath ?? '';
         this.clientsPath.value = settings.clientsPath ?? '';
-        this.endpoint.value = settings.endpoint ?? '';
+        this.server.value = settings.server ?? '';
+        this.serverPort.value = settings.serverPort ?? '';
         this.dns.value = settings.dns ?? '';
         this.allowedIps.value = settings.allowedIps ?? '';
         this.persistentKeepalive.value = settings.persistentKeepalive ?? '';
@@ -109,7 +111,8 @@ class SettingsModal {
             await this.api.put('/api/settings', {
                 configPath: this.configPath.value,
                 clientsPath: this.clientsPath.value,
-                endpoint: this.endpoint.value,
+                server: this.server.value,
+                serverPort: Number(this.serverPort.value),
                 dns: this.dns.value,
                 allowedIps: this.allowedIps.value,
                 persistentKeepalive: this.persistentKeepalive.value

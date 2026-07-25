@@ -21,12 +21,11 @@ class SettingsService
     private const ALLOWED_KEYS = [
         'apiKey',
         'network',
-        'serverIp',
+        'server',
         'serverPort',
         'dns',
         'configPath',
         'clientsPath',
-        'endpoint',
         'allowedIps',
         'persistentKeepalive',
     ];
@@ -92,7 +91,22 @@ class SettingsService
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        return $this->settings[$key] ?? $default;
+        if (!array_key_exists($key, $this->settings)) {
+            return $default;
+        }
+
+        $value = $this->settings[$key];
+
+        if (
+            $default !== null
+            && is_string($default)
+            && is_string($value)
+            && trim($value) === ''
+        ) {
+            return $default;
+        }
+
+        return $value;
     }
 
     /**
@@ -106,13 +120,37 @@ class SettingsService
             );
         }
 
-        if ($key === 'configPath') {
-            $value = trim((string) $value);
-            if (!is_file($value)) {
-                throw new RuntimeException(
-                    "Конфигурация WireGuard не найдена: {$value}"
-                );
-            }
+        switch ($key) {
+            case 'server':
+                $value = trim((string) $value);
+                if ($value === '') {
+                    $value = '127.0.0.1';
+                }
+                break;
+
+            case 'serverPort':
+                $value = trim((string) $value);
+                if ($value === '') {
+                    $value = 51820;
+                    break;
+                }
+
+                $value = (int) $value;
+                if ($value < 1 || $value > 65535) {
+                    throw new RuntimeException(
+                        'Порт должен быть в диапазоне от 1 до 65535.'
+                    );
+                }
+                break;
+
+            case 'configPath':
+                $value = trim((string) $value);
+                if (!is_file($value)) {
+                    throw new RuntimeException(
+                        "Конфигурация WireGuard не найдена: {$value}"
+                    );
+                }
+                break;
         }
 
         $this->settings[$key] = $value;
