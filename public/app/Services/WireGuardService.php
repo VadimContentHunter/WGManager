@@ -31,6 +31,7 @@ class WireGuardService
     private const SETTING_DNS = 'dns';
     private const SETTING_ALLOWED_IPS = 'allowedIps';
     private const SETTING_PERSISTENT_KEEPALIVE = 'persistentKeepalive';
+    private const SETTING_CLIENTS_PATH = 'clientsPath';
 
     /**
      * Ключи Peer.
@@ -134,7 +135,10 @@ class WireGuardService
      */
     public function getPeers(): array
     {
-        return $this->peers;
+        return array_map(
+            fn(array $peer) => $this->enrichPeer($peer),
+            $this->peers
+        );
     }
 
     /**
@@ -151,7 +155,7 @@ class WireGuardService
             if (
                 ($peer[self::PEER_PUBLIC_KEY] ?? '') === $publicKey
             ) {
-                return $peer;
+                return $this->enrichPeer($peer);
             }
         }
 
@@ -167,7 +171,7 @@ class WireGuardService
      */
     public function getPeerByName(string $name): ?array
     {
-        foreach ($this->peers as $peer) {
+        foreach ($this->getPeers() as $peer) {
 
             if (
                 ($peer[self::PEER_NAME] ?? '') === $name
@@ -261,6 +265,12 @@ class WireGuardService
             throw new RuntimeException('Peer уже существует.');
         }
 
+        unset(
+            $peer[self::PEER_NAME],
+            $peer['Directory'],
+            $peer['Status']
+        );
+
         $this->peers[] = $peer;
     }
 
@@ -277,15 +287,17 @@ class WireGuardService
     public function updatePeer(string $publicKey, array $peer): bool
     {
         foreach ($this->peers as $index => $item) {
-
-            if (
-                ($item[self::PEER_PUBLIC_KEY] ?? '') !== $publicKey
-            ) {
+            if (($item[self::PEER_PUBLIC_KEY] ?? '') !== $publicKey) {
                 continue;
             }
 
-            $this->peers[$index] = $peer;
+            unset(
+                $peer[self::PEER_NAME],
+                $peer['Directory'],
+                $peer['Status']
+            );
 
+            $this->peers[$index] = $peer;
             return true;
         }
 
@@ -359,35 +371,25 @@ class WireGuardService
             switch ($line) {
 
                 case '[Interface]':
-
                     if (!empty($peer)) {
                         $this->peers[] = $peer;
                         $peer = [];
                     }
 
                     $section = 'interface';
-
                     continue 2;
 
                 case '[Peer]':
-
                     if (!empty($peer)) {
                         $this->peers[] = $peer;
                     }
 
                     $peer = [];
-
                     $section = 'peer';
-
                     continue 2;
             }
 
             if (str_starts_with($line, '#')) {
-
-                if ($section === 'peer') {
-                    $peer[self::PEER_NAME] = trim(substr($line, 1));
-                }
-
                 continue;
             }
 
@@ -423,25 +425,24 @@ class WireGuardService
     private function build(): string
     {
         $config = [];
-
         $config[] = '[Interface]';
-
         foreach ($this->interface as $key => $value) {
             $config[] = "{$key} = {$value}";
         }
 
         foreach ($this->peers as $peer) {
-
             $config[] = '';
             $config[] = '[Peer]';
-
-            if (!empty($peer[self::PEER_NAME])) {
-                $config[] = '# ' . $peer[self::PEER_NAME];
-            }
-
             foreach ($peer as $key => $value) {
 
-                if ($key === self::PEER_NAME) {
+                if (in_array($key,
+                    [
+                        self::PEER_NAME,
+                        'Directory',
+                        'Status'
+                    ],
+                    true
+                )) {
                     continue;
                 }
 
@@ -612,6 +613,82 @@ class WireGuardService
         }
 
         return implode(PHP_EOL, $output);
+    }
+
+    /**
+     * Возвращает путь к каталогу клиентов.
+     */
+    private function getClientsPath(): string
+    {
+        return rtrim(
+            $this->settings->get(
+                self::SETTING_CLIENTS_PATH,
+                dirname($this->configPath) . '/clients'
+            ),
+            DIRECTORY_SEPARATOR
+        );
+    }
+
+    /**
+     * Ищет каталог клиента по PublicKey.
+     */
+    private function findClientDirectory(
+        string $publicKey
+    ): ?string {
+        $clientsPath = $this->getClientsPath();
+
+        if (!is_dir($clientsPath)) {
+            return null;
+        }
+
+        foreach (scandir($clientsPath) as $directory) {
+            if ($directory === '.' || $directory === '..') {
+                continue;
+            }
+
+            $path = $clientsPath . DIRECTORY_SEPARATOR . $directory;
+            if (!is_dir($path)) {
+                continue;
+            }
+
+            $keyFile = $path . DIRECTORY_SEPARATOR . 'public.key';
+            if (!is_file($keyFile)) {
+                continue;
+            }
+
+            $key = trim(file_get_contents($keyFile) ?: '');
+            if ($key === $publicKey) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Дополняет данные Peer информацией из каталога клиента.
+     *
+     * @param array<string, string> $peer
+     *
+     * @return array<string, string>
+     */
+    private function enrichPeer(array $peer): array
+    {
+        $directory = $this->findClientDirectory(
+            $peer[self::PEER_PUBLIC_KEY] ?? ''
+        );
+
+        if ($directory === null) {
+            $peer[self::PEER_NAME] = '';
+            $peer['Directory'] = '';
+            $peer['Status'] = 'Некорректный';
+            return $peer;
+        }
+
+        $peer[self::PEER_NAME] = basename($directory);
+        $peer['Directory'] = $directory;
+        $peer['Status'] = 'OK';
+        return $peer;
     }
 
     /**
