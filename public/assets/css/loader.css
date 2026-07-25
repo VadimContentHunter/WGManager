@@ -1,0 +1,37 @@
+/***************************************************
+ * LOADER
+ **************************************************/
+
+.loader {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, .65);
+    backdrop-filter: blur(2px);
+    z-index: 9998;
+}
+
+.loader.hidden {
+    display: none !important;
+}
+
+.loader-spinner {
+    width: 56px;
+    height: 56px;
+    border: 5px solid #dbeafe;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: loader-spin .8s linear infinite;
+}
+
+@keyframes loader-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

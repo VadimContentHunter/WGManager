@@ -1,0 +1,85 @@
+/***************************************************
+ * NOTIFICATION
+ **************************************************/
+
+.notification {
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    border-radius: var(--radius);
+    font-weight: 600;
+}
+
+.notification.success {
+    background: var(--success-bg);
+    color: var(--success-text);
+}
+
+.notification.error {
+    background: var(--error-bg);
+    color: var(--error-text);
+}
+
+.notification.warning {
+    background: var(--warning-bg);
+    color: var(--warning-text);
+}
+
+.notification.info {
+    background: #dbeafe;
+    color: #1e3a8a;
+}
+
+#notify {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.notify {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 320px;
+    max-width: 500px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .2);
+    pointer-events: auto;
+}
+
+.notify-success {
+    background: #2e7d32;
+}
+
+.notify-error {
+    background: #c62828;
+}
+
+.notify-warning {
+    background: #ed6c02;
+}
+
+.notify-info {
+    background: #1565c0;
+}
+
+.notify-message {
+    flex: 1;
+}
+
+.notify-close {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    padding: 0;
+}
