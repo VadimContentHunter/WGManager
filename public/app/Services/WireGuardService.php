@@ -69,6 +69,7 @@ class WireGuardService
      */
     public function __construct(
         private readonly SettingsService $settings,
+        private readonly CommandService $command,
     ) {
         $this->configPath = $this->settings->get(
             'configPath',
@@ -198,7 +199,7 @@ class WireGuardService
         }
 
         return trim(
-            $this->executeCommand(
+            $this->command->run(
                 sprintf(
                     'printf %%s %s | wg pubkey',
                     escapeshellarg($privateKey)
@@ -606,9 +607,9 @@ class WireGuardService
     public function buildClientConfig(array $peer): string
     {
         $server = trim($this->settings->get(self::SETTING_SERVER, '127.0.0.1'));
-        $serverPort = (int) $this->settings->get(self::SETTING_SERVER_PORT,51820);
-        $endpoint = sprintf('%s:%d',$server,$serverPort);
-        
+        $serverPort = (int) $this->settings->get(self::SETTING_SERVER_PORT, 51820);
+        $endpoint = sprintf('%s:%d', $server, $serverPort);
+
         return implode(PHP_EOL, [
             '[Interface]',
             'PrivateKey = ' . ($peer[self::PEER_PRIVATE_KEY] ?? ''),
@@ -679,7 +680,7 @@ class WireGuardService
             $this->getInterfaceName()
         );
 
-        $this->executeCommand(
+        $this->command->run(
             sprintf(
                 'wg syncconf %s <(wg-quick strip %s)',
                 $interface,
@@ -702,11 +703,11 @@ class WireGuardService
     public function generateKeyPair(): array
     {
         $privateKey = trim(
-            $this->executeCommand('wg genkey')
+            $this->command->run('wg genkey')
         );
 
         $publicKey = trim(
-            $this->executeCommand(
+            $this->command->run(
                 sprintf(
                     'printf %%s %s | wg pubkey',
                     escapeshellarg($privateKey)
@@ -730,49 +731,6 @@ class WireGuardService
     public function hasPeers(): bool
     {
         return !empty($this->peers);
-    }
-
-    /**
-     * Выполняет системную команду.
-     *
-     * @param string $command Команда.
-     * @param bool $useBash Использовать Bash.
-     *
-     * @return string Результат выполнения команды.
-     *
-     * @return bool
-     * true  - Команда будет выполнена через Bash.
-     * false - Команда будет выполнена стандартной оболочкой.
-     *
-     * @throws RuntimeException
-     */
-    private function executeCommand(
-        string $command,
-        bool $useBash = false
-    ): string {
-        if ($useBash) {
-            $command = sprintf(
-                'bash -c %s',
-                escapeshellarg($command)
-            );
-        }
-
-        $output = [];
-        $exitCode = 0;
-
-        exec(
-            $command . ' 2>&1',
-            $output,
-            $exitCode
-        );
-
-        if ($exitCode !== 0) {
-            throw new RuntimeException(
-                implode(PHP_EOL, $output)
-            );
-        }
-
-        return implode(PHP_EOL, $output);
     }
 
     /**

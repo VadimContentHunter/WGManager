@@ -58,14 +58,12 @@ class ClientService
         try {
 
             $this->wireGuard->addPeer($client);
-
             $this->wireGuard->createClientFiles(
                 $name,
                 $client
             );
 
             $this->wireGuard->save();
-
             $this->wireGuard->apply();
         } catch (\Throwable $e) {
 
@@ -77,6 +75,7 @@ class ClientService
                 $name
             );
 
+            // $a = $e->getTraceAsString();
             throw $e;
         }
 

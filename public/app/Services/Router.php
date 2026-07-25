@@ -95,7 +95,7 @@ class Router
                     $request,
                     $response,
                     new ClientService(
-                        new WireGuardService($settings)
+                        new WireGuardService( $settings, new CommandService())
                     )
                 ),
 
