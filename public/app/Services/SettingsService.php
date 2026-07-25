@@ -18,6 +18,19 @@ class SettingsService
      */
     private array $settings = [];
 
+    private const ALLOWED_KEYS = [
+        'apiKey',
+        'network',
+        'serverIp',
+        'serverPort',
+        'dns',
+        'configPath',
+        'clientsPath',
+        'endpoint',
+        'allowedIps',
+        'persistentKeepalive',
+    ];
+
     public function __construct(?string $file = null)
     {
         $this->file = $file ?? dirname(__DIR__, 2) . '/config/settings.json';
@@ -87,6 +100,21 @@ class SettingsService
      */
     public function set(string $key, mixed $value): void
     {
+        if (!in_array($key, self::ALLOWED_KEYS, true)) {
+            throw new RuntimeException(
+                "Неизвестный параметр настроек: {$key}"
+            );
+        }
+
+        if ($key === 'configPath') {
+            $value = trim((string) $value);
+            if (!is_file($value)) {
+                throw new RuntimeException(
+                    "Конфигурация WireGuard не найдена: {$value}"
+                );
+            }
+        }
+
         $this->settings[$key] = $value;
     }
 

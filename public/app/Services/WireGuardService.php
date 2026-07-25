@@ -81,9 +81,12 @@ class WireGuardService
      */
     public function load(): void
     {
-        if (!file_exists($this->configPath)) {
+        if (
+            !is_file($this->configPath)
+            || !is_readable($this->configPath)
+        ) {
             throw new RuntimeException(
-                "Конфигурация WireGuard не найдена: {$this->configPath}"
+                "Конфигурация WireGuard недоступна: {$this->configPath}"
             );
         }
 

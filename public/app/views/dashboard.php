@@ -82,6 +82,13 @@
                     type="text">
             </div>
 
+            <div class="field">
+                <label for="clients-path">Clients Path</label>
+                <input
+                    id="clients-path"
+                    type="text">
+            </div>
+
             <div class="field-row">
                 <div class="field">
                     <label for="endpoint">Endpoint</label>

@@ -71,23 +71,20 @@ class App {
 
     async loadClients() {
         try {
-
-            const clients = await this.api.get(
+            const response = await this.api.get(
                 '/api/clients'
             );
 
             this.clientTable.setClients(
-                clients
+                response.data ?? []
             );
 
         } catch (e) {
-
             this.notify.error(
                 e.message
             );
 
         }
-
     }
 
     async handleClientAction(action, client) {

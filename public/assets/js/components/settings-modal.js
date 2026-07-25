@@ -17,6 +17,7 @@ class SettingsModal {
         this.rotateApiKeyButton = document.getElementById('generate-api-key');
 
         this.configPath = document.getElementById('config-path');
+        this.clientsPath = document.getElementById('clients-path');
         this.endpoint = document.getElementById('endpoint');
         this.dns = document.getElementById('dns');
         this.allowedIps = document.getElementById('allowed-ips');
@@ -26,7 +27,6 @@ class SettingsModal {
         this.apiKeyStatus = document.getElementById('api-key-status');
 
         this.registerEvents();
-
     }
 
     registerEvents() {
@@ -90,13 +90,15 @@ class SettingsModal {
     }
 
     async loadSettings() {
-        const settings = await this.api.get('/api/settings');
+        const response = await this.api.get('/api/settings');
+        const settings = response.data ?? {};
 
-        this.configPath.value = settings.ConfigPath ?? '';
-        this.endpoint.value = settings.Endpoint ?? '';
-        this.dns.value = settings.DNS ?? '';
-        this.allowedIps.value = settings.AllowedIPs ?? '';
-        this.persistentKeepalive.value = settings.PersistentKeepalive ?? '';
+        this.configPath.value = settings.configPath ?? '';
+        this.clientsPath.value = settings.clientsPath ?? '';
+        this.endpoint.value = settings.endpoint ?? '';
+        this.dns.value = settings.dns ?? '';
+        this.allowedIps.value = settings.allowedIps ?? '';
+        this.persistentKeepalive.value = settings.persistentKeepalive ?? '';
     }
 
     async save() {
@@ -105,11 +107,12 @@ class SettingsModal {
 
         try {
             await this.api.put('/api/settings', {
-                ConfigPath: this.configPath.value,
-                Endpoint: this.endpoint.value,
-                DNS: this.dns.value,
-                AllowedIPs: this.allowedIps.value,
-                PersistentKeepalive: this.persistentKeepalive.value
+                configPath: this.configPath.value,
+                clientsPath: this.clientsPath.value,
+                endpoint: this.endpoint.value,
+                dns: this.dns.value,
+                allowedIps: this.allowedIps.value,
+                persistentKeepalive: this.persistentKeepalive.value
             });
 
             this.notify.success('Настройки сохранены.');
@@ -124,10 +127,11 @@ class SettingsModal {
     }
 
     async loadApiKey() {
-        const result = await this.api.get('/api/api-key');
+        const response = await this.api.get('/api/api-key');
+        const result = response.data ?? {};
 
         this.apiKey.value = result.apiKey ?? '';
-        this.apiKeyStatus.textContent = result.apiKey
+        this.apiKeyStatus.value = result.apiKey
             ? 'Создан'
             : 'Не создан';
 
@@ -139,13 +143,16 @@ class SettingsModal {
         this.setLoading(true);
 
         try {
-            const result = await this.api.put('/api/api-key');
+            const response = await this.api.put('/api/api-key');
+            const result = response.data ?? {};
 
-            this.apiKey.value = result.apiKey;
-            this.apiKeyStatus.textContent = 'Создан';
-            this.api.apiKey = result.apiKey;
+            this.apiKey.value = result.apiKey ?? '';
+            this.apiKeyStatus.value = 'Создан';
+            this.api.apiKey = result.apiKey ?? null;
 
-            this.notify.success('API-ключ успешно обновлён.');
+            this.notify.success(
+                'API-ключ успешно обновлён.'
+            );
         } catch (e) {
             this.notify.error(e.message);
         } finally {
