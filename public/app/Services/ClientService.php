@@ -218,10 +218,16 @@ class ClientService
     private function validate(
         array $data
     ): void {
-
-        if (empty($data['name'])) {
+        $name = trim($data['name'] ?? '');
+        if ($name === '') {
             throw new InvalidArgumentException(
                 'Не указано имя клиента.'
+            );
+        }
+
+        if (!preg_match('/^[A-Za-z0-9_-]{1,32}$/', $name)) {
+            throw new InvalidArgumentException(
+                'Допустимы только латинские буквы, цифры, "-", "_" (до 32 символов).'
             );
         }
     }

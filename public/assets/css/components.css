@@ -85,6 +85,20 @@ button i {
     font-size: 15px;
 }
 
+.field input.invalid {
+    border-color: #dc3545;
+}
+
+.field-error {
+    margin-top: 6px;
+    color: #dc3545;
+    font-size: 13px;
+}
+
+.field-error.hidden {
+    display: none;
+}
+
 .search {
     width: 320px;
     height: 42px;

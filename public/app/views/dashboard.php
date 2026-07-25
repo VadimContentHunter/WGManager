@@ -226,8 +226,17 @@
                 <input
                     id="client-name"
                     type="text"
+                    maxlength="32"
+                    autocomplete="off"
+                    spellcheck="false"
                     placeholder="Например: phone">
+
+                <div
+                    id="client-name-error"
+                    class="field-error hidden">
+                </div>
             </div>
+
         </div>
         <div class="modal-footer">
             <button id="client-cancel">
@@ -240,5 +249,5 @@
             </button>
         </div>
     </div>
-    
+
 </div>
