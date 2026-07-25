@@ -8,5 +8,10 @@
         "8.8.8.8"
     ],
     "configPath": "/etc/wireguard/wg0.conf",
-    "clientsPath": "/etc/wireguard/clients"
+    "clientsPath": "/etc/wireguard/clients",
+    "ConfigPath": "/config/wg0.conf",
+    "Endpoint": "",
+    "DNS": "",
+    "AllowedIPs": "",
+    "PersistentKeepalive": ""
 }
