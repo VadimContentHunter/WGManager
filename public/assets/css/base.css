@@ -40,33 +40,21 @@ body {
 }
 
 @media (max-width: 768px) {
-    .header {
-        padding: 0 15px;
+    .modal {
+        padding: 16px;
     }
 
-    .logo {
-        font-size: 22px;
+    .modal-content {
+        max-width: 100%;
     }
 
-    .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
+    .field-row {
+        grid-template-columns: 1fr;
     }
 
-    .actions {
-        width: 100%;
-    }
-
-    .actions button {
-        flex: 1;
-    }
-
-    .search {
-        width: 100%;
-    }
-
-    .modal-window {
-        width: calc(100% - 20px);
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 20px;
     }
 }

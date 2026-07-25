@@ -28,7 +28,6 @@ $content = $content ?? '';
 
     <div id="notify"></div>
 
-    <!-- Сюда -->
     <div id="loader" class="loader hidden">
         <div class="loader-spinner"></div>
     </div>

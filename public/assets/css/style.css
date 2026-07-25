@@ -1,6 +1,6 @@
 @import "base.css";
 @import "layout.css";
 @import "components.css";
+@import "modal.css";
 @import "notify.css";
 @import "loader.css";
-@import "api-key-modal.css";
