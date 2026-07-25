@@ -69,9 +69,9 @@ class ClientTable {
                 <td>${client.Name ?? '-'}</td>
                 <td>${client.AllowedIPs ?? '-'}</td>
                 <td>${this.renderStatus(client.Status)}</td>
-                <td>${client.LastHandshake ?? '-'}</td>
-                <td>${client.ReceiveBytes ?? '-'}</td>
-                <td>${client.TransmitBytes ?? '-'}</td>
+                <td>${this.formatHandshake(client.LastHandshake)}</td>
+                <td>${this.formatBytes(client.ReceiveBytes)}</td>
+                <td>${this.formatBytes(client.TransmitBytes)}</td>
                 <td>
 
                     <button
@@ -126,6 +126,42 @@ class ClientTable {
                     </span>
                 `;
         }
+
+    }
+
+    formatHandshake(value) {
+        if (!value || value === '0') {
+            return 'Никогда';
+        }
+        return value;
+    }
+
+    formatBytes(bytes) {
+        bytes = Number(bytes);
+        if (!Number.isFinite(bytes) || bytes <= 0) {
+            return '0 B';
+        }
+        
+        const units = [
+            'B',
+            'KB',
+            'MB',
+            'GB',
+            'TB'
+        ];
+
+        let unit = 0;
+        while (
+            bytes >= 1024 &&
+            unit < units.length - 1
+        ) {
+            bytes /= 1024;
+            unit++;
+        }
+
+        return `${bytes.toFixed(
+            bytes < 10 && unit > 0 ? 1 : 0
+        )} ${units[unit]}`;
 
     }
 
