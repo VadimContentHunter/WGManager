@@ -6,7 +6,6 @@ class Api {
 
     get apiKey() {
         return localStorage.getItem('apiKey');
-
     }
 
     set apiKey(value) {
@@ -14,13 +13,12 @@ class Api {
             localStorage.removeItem('apiKey');
             return;
         }
-        localStorage.setItem('apiKey', value);
 
+        localStorage.setItem('apiKey', value);
     }
 
     get(url) {
         return this.request(url);
-
     }
 
     post(url, body = {}) {
@@ -28,7 +26,6 @@ class Api {
             method: 'POST',
             body
         });
-
     }
 
     put(url, body = {}) {
@@ -36,14 +33,12 @@ class Api {
             method: 'PUT',
             body
         });
-
     }
 
     delete(url) {
         return this.request(url, {
             method: 'DELETE'
         });
-
     }
 
     patch(url, body = {}) {
@@ -51,7 +46,6 @@ class Api {
             method: 'PATCH',
             body
         });
-
     }
 
     async request(url, options = {}) {
@@ -81,11 +75,19 @@ class Api {
                     headers
                 }
             );
+
             const contentType = response.headers.get('Content-Type') ?? '';
+
             let data = null;
+
             if (contentType.includes('application/json')) {
                 data = await response.json();
             }
+
+            this.handleUnauthorized(
+                response,
+                data?.message
+            );
 
             if (!response.ok) {
                 throw new Error(
@@ -94,8 +96,13 @@ class Api {
                 );
             }
 
-            if (data && data.success === false) {
-                throw new Error(data.message);
+            if (
+                data &&
+                data.success === false
+            ) {
+                throw new Error(
+                    data.message
+                );
             }
 
             return data;
@@ -107,7 +114,6 @@ class Api {
             );
 
         }
-
     }
 
     async download(url, filename = null) {
@@ -116,7 +122,6 @@ class Api {
         );
 
         try {
-
             const headers = {};
 
             if (this.apiKey) {
@@ -130,18 +135,25 @@ class Api {
                 }
             );
 
+            this.handleUnauthorized(response);
+
             if (!response.ok) {
-                throw new Error('Ошибка скачивания.');
+                throw new Error(
+                    'Ошибка скачивания.'
+                );
             }
 
             const blob = await response.blob();
             const objectUrl = URL.createObjectURL(blob);
+
             const link = document.createElement('a');
             link.href = objectUrl;
             link.download = filename ?? '';
+
             document.body.appendChild(link);
             link.click();
             link.remove();
+
             URL.revokeObjectURL(objectUrl);
 
         } finally {
@@ -151,7 +163,23 @@ class Api {
             );
 
         }
+    }
 
+    handleUnauthorized(
+        response,
+        message = 'Неверный API ключ.'
+    ) {
+        if (response.status !== 401) {
+            return;
+        }
+
+        this.apiKey = null;
+
+        document.dispatchEvent(
+            new CustomEvent('auth:required')
+        );
+
+        throw new Error(message);
     }
 
 }

@@ -152,6 +152,10 @@
                 Сохранить
             </button>
         </div>
+
+        <div class="modal-loader hidden">
+            <div class="loader-spinner"></div>
+        </div>
     </div>
 </div>
 <div id="api-key-modal" class="modal hidden">

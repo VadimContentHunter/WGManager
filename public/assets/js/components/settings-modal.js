@@ -6,6 +6,9 @@ class SettingsModal {
         this.notify = notify;
 
         this.modal = document.getElementById('settings-modal');
+        this.modalContent = this.modal.querySelector('.modal-content');
+        this.loader = this.modal.querySelector('.modal-loader');
+        this.formControls = this.modal.querySelectorAll('input, button, select, textarea');
 
         this.openButton = document.getElementById('settings-button');
         this.closeButton = document.getElementById('settings-close');
@@ -65,16 +68,19 @@ class SettingsModal {
     }
 
     async open() {
+        this.modal.classList.remove('hidden');
+
+        this.setDisabled(true);
+        this.setLoading(true);
+
         try {
-
             await this.load();
-
-            this.modal.classList.remove('hidden');
-
-        }catch (e) {
+        } catch (e) {
             this.notify.error(e.message);
+        } finally {
+            this.setLoading(false);
+            this.setDisabled(false);
         }
-
     }
 
     close() {
@@ -84,25 +90,20 @@ class SettingsModal {
     }
 
     async loadSettings() {
+        const settings = await this.api.get('/api/settings');
 
-        try {
-            const settings = await this.api.get('/api/settings');
-
-            this.configPath.value = settings.ConfigPath ?? '';
-            this.endpoint.value = settings.Endpoint ?? '';
-            this.dns.value = settings.DNS ?? '';
-            this.allowedIps.value = settings.AllowedIPs ?? '';
-            this.persistentKeepalive.value = settings.PersistentKeepalive ?? '';
-
-        } catch (e) {
-            this.notify.error(e.message);
-        }
-
+        this.configPath.value = settings.ConfigPath ?? '';
+        this.endpoint.value = settings.Endpoint ?? '';
+        this.dns.value = settings.DNS ?? '';
+        this.allowedIps.value = settings.AllowedIPs ?? '';
+        this.persistentKeepalive.value = settings.PersistentKeepalive ?? '';
     }
 
     async save() {
-        try {
+        this.setDisabled(true);
+        this.setLoading(true);
 
+        try {
             await this.api.put('/api/settings', {
                 ConfigPath: this.configPath.value,
                 Endpoint: this.endpoint.value,
@@ -114,52 +115,61 @@ class SettingsModal {
             this.notify.success('Настройки сохранены.');
 
             this.close();
-
         } catch (e) {
-
             this.notify.error(e.message);
-
+        } finally {
+            this.setLoading(false);
+            this.setDisabled(false);
         }
-
     }
 
     async loadApiKey() {
-        try {
+        const result = await this.api.get('/api/api-key');
 
-            const result = await this.api.get('/api/api-key');
+        this.apiKey.value = result.apiKey ?? '';
+        this.apiKeyStatus.textContent = result.apiKey
+            ? 'Создан'
+            : 'Не создан';
 
-            this.apiKey.value = result.apiKey ?? '';
-            this.apiKeyStatus.textContent = result.apiKey ? 'Создан' : 'Не создан';
-
-            this.api.apiKey = result.apiKey ?? null;
-
-        } catch (e) {
-
-            this.apiKey.value = '';
-            this.apiKeyStatus.textContent = 'Не создан';
-
-        }
-
+        this.api.apiKey = result.apiKey ?? null;
     }
 
     async rotateApiKey() {
-        try {
+        this.setDisabled(true);
+        this.setLoading(true);
 
+        try {
             const result = await this.api.put('/api/api-key');
 
             this.apiKey.value = result.apiKey;
             this.apiKeyStatus.textContent = 'Создан';
-
             this.api.apiKey = result.apiKey;
 
             this.notify.success('API-ключ успешно обновлён.');
-
         } catch (e) {
-
             this.notify.error(e.message);
-
+        } finally {
+            this.setLoading(false);
+            this.setDisabled(false);
         }
+    }
 
+    setLoading(state) {
+        this.modalContent.classList.toggle(
+            'modal-loading',
+            state
+        );
+
+        this.loader.classList.toggle(
+            'hidden',
+            !state
+        );
+    }
+
+    setDisabled(state) {
+        this.formControls.forEach(element => {
+            element.disabled = state;
+        });
     }
 
 }

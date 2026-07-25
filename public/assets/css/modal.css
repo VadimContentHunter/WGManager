@@ -163,6 +163,35 @@
     margin-top: 8px;
 }
 
+.modal-content {
+    position: relative;
+}
+
+.modal-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgb(255 255 255 / .75);
+    backdrop-filter: blur(2px);
+    z-index: 100;
+}
+
+.modal-loader.hidden {
+    display: none;
+}
+
+.modal-loading {
+    pointer-events: none;
+}
+
+.modal-loading .modal-body,
+.modal-loading .modal-header,
+.modal-loading .modal-footer {
+    user-select: none;
+}
+
 @media (max-width: 768px) {
     .modal {
         padding: 16px;

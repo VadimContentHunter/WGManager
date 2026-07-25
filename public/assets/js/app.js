@@ -31,7 +31,6 @@ class App {
     }
 
     registerEvents() {
-
         this.refreshButton.addEventListener(
             'click',
             () => this.loadClients()
@@ -43,6 +42,15 @@ class App {
         ) => this.handleClientAction(
             action,
             client
+        );
+
+        document.addEventListener(
+            'auth:required',
+            () => {
+                this.clientTable.setClients([]);
+                this.apiKeyModal.open();
+
+            }
         );
 
     }
