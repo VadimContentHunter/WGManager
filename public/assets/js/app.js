@@ -1,18 +1,14 @@
 class App {
 
     constructor() {
-
         this.initComponents();
         this.registerEvents();
 
     }
 
     initComponents() {
-
         this.api = new Api();
-
         this.notify = new Notify();
-
         this.clientTable = new ClientTable(
             document.getElementById('clients-table'),
             document.getElementById('client-search')
@@ -52,7 +48,6 @@ class App {
     }
 
     async init() {
-
         if (!this.api.apiKey) {
 
             this.apiKeyModal.open();
@@ -67,7 +62,6 @@ class App {
     }
 
     async loadClients() {
-
         try {
 
             const clients = await this.api.get(
@@ -89,7 +83,6 @@ class App {
     }
 
     async handleClientAction(action, client) {
-
         switch (action) {
 
             case 'download':
@@ -106,26 +99,22 @@ class App {
     }
 
     async downloadClient(client) {
-
         try {
-
             await this.api.download(
                 `/api/clients/${client.PublicKey}/config`,
                 `${client.Name}.conf`
             );
 
         } catch (e) {
-
             this.notify.error(
                 e.message
             );
 
-        }
+        } finally {}
 
     }
 
     editClient(client) {
-
         console.log(
             'Edit client:',
             client
@@ -134,7 +123,6 @@ class App {
     }
 
     async deleteClient(client) {
-
         console.log(
             'Delete client:',
             client

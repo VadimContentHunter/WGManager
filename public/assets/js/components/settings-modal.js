@@ -11,78 +11,48 @@ class SettingsModal {
         this.closeButton = document.getElementById('settings-close');
         this.cancelButton = document.getElementById('settings-cancel');
         this.saveButton = document.getElementById('settings-save');
-
-        this.rotateApiKeyButton = document.getElementById(
-            'generate-api-key'
-        );
+        this.rotateApiKeyButton = document.getElementById('generate-api-key');
 
         this.configPath = document.getElementById('config-path');
         this.endpoint = document.getElementById('endpoint');
         this.dns = document.getElementById('dns');
         this.allowedIps = document.getElementById('allowed-ips');
-        this.persistentKeepalive = document.getElementById(
-            'persistent-keepalive'
-        );
+        this.persistentKeepalive = document.getElementById('persistent-keepalive');
 
         this.apiKey = document.getElementById('api-key');
-        this.apiKeyStatus = document.getElementById(
-            'api-key-status'
-        );
+        this.apiKeyStatus = document.getElementById('api-key-status');
 
         this.registerEvents();
+
     }
 
     registerEvents() {
 
-        this.openButton.addEventListener(
-            'click',
-            () => this.open()
-        );
+        this.openButton.addEventListener('click', () => this.open());
+        this.closeButton.addEventListener('click', () => this.close());
+        this.cancelButton.addEventListener('click', () => this.close());
+        this.saveButton.addEventListener('click', () => this.save());
+        this.rotateApiKeyButton.addEventListener('click', () => this.rotateApiKey());
 
-        this.closeButton.addEventListener(
-            'click',
-            () => this.close()
-        );
+        this.modal.addEventListener('click', event => {
 
-        this.cancelButton.addEventListener(
-            'click',
-            () => this.close()
-        );
-
-        this.saveButton.addEventListener(
-            'click',
-            () => this.save()
-        );
-
-        this.rotateApiKeyButton.addEventListener(
-            'click',
-            () => this.rotateApiKey()
-        );
-
-        this.modal.addEventListener(
-            'click',
-            event => {
-
-                if (event.target === this.modal) {
-                    this.close();
-                }
-
+            if (event.target === this.modal) {
+                this.close();
             }
-        );
 
-        document.addEventListener(
-            'keydown',
-            event => {
+        });
 
-                if (
-                    event.key === 'Escape' &&
-                    !this.modal.classList.contains('hidden')
-                ) {
-                    this.close();
-                }
+        document.addEventListener('keydown', event => {
 
+            if (
+                event.key === 'Escape' &&
+                !this.modal.classList.contains('hidden')
+            ) {
+                this.close();
             }
-        );
+
+        });
+
     }
 
     async load() {
@@ -95,137 +65,98 @@ class SettingsModal {
     }
 
     async open() {
+        try {
 
-        await this.load();
+            await this.load();
 
-        this.modal.classList.remove('hidden');
+            this.modal.classList.remove('hidden');
+
+        }catch (e) {
+            this.notify.error(e.message);
+        }
+
     }
 
     close() {
 
         this.modal.classList.add('hidden');
+
     }
 
     async loadSettings() {
 
         try {
+            const settings = await this.api.get('/api/settings');
 
-            const settings = await this.api.get(
-                '/api/settings'
-            );
-
-            this.configPath.value =
-                settings.ConfigPath ?? '';
-
-            this.endpoint.value =
-                settings.Endpoint ?? '';
-
-            this.dns.value =
-                settings.DNS ?? '';
-
-            this.allowedIps.value =
-                settings.AllowedIPs ?? '';
-
-            this.persistentKeepalive.value =
-                settings.PersistentKeepalive ?? '';
+            this.configPath.value = settings.ConfigPath ?? '';
+            this.endpoint.value = settings.Endpoint ?? '';
+            this.dns.value = settings.DNS ?? '';
+            this.allowedIps.value = settings.AllowedIPs ?? '';
+            this.persistentKeepalive.value = settings.PersistentKeepalive ?? '';
 
         } catch (e) {
-
-            this.notify.error(
-                e.message
-            );
-
+            this.notify.error(e.message);
         }
 
     }
 
     async save() {
-
         try {
 
-            await this.api.put(
-                '/api/settings',
-                {
-                    ConfigPath: this.configPath.value,
-                    Endpoint: this.endpoint.value,
-                    DNS: this.dns.value,
-                    AllowedIPs: this.allowedIps.value,
-                    PersistentKeepalive:
-                        this.persistentKeepalive.value
-                }
-            );
+            await this.api.put('/api/settings', {
+                ConfigPath: this.configPath.value,
+                Endpoint: this.endpoint.value,
+                DNS: this.dns.value,
+                AllowedIPs: this.allowedIps.value,
+                PersistentKeepalive: this.persistentKeepalive.value
+            });
 
-            this.notify.success(
-                'Настройки сохранены.'
-            );
+            this.notify.success('Настройки сохранены.');
 
             this.close();
 
         } catch (e) {
 
-            this.notify.error(
-                e.message
-            );
+            this.notify.error(e.message);
 
         }
 
     }
 
     async loadApiKey() {
-
         try {
 
-            const result = await this.api.get(
-                '/api/api-key'
-            );
+            const result = await this.api.get('/api/api-key');
 
-            this.apiKey.value =
-                result.apiKey ?? '';
+            this.apiKey.value = result.apiKey ?? '';
+            this.apiKeyStatus.textContent = result.apiKey ? 'Создан' : 'Не создан';
 
-            this.apiKeyStatus.textContent =
-                result.apiKey
-                    ? 'Создан'
-                    : 'Не создан';
-
-            this.api.apiKey =
-                result.apiKey ?? null;
+            this.api.apiKey = result.apiKey ?? null;
 
         } catch (e) {
 
             this.apiKey.value = '';
-            this.apiKeyStatus.textContent =
-                'Не создан';
+            this.apiKeyStatus.textContent = 'Не создан';
 
         }
 
     }
 
     async rotateApiKey() {
-
         try {
 
-            const result = await this.api.put(
-                '/api/api-key'
-            );
+            const result = await this.api.put('/api/api-key');
 
-            this.apiKey.value =
-                result.apiKey;
+            this.apiKey.value = result.apiKey;
+            this.apiKeyStatus.textContent = 'Создан';
 
-            this.apiKeyStatus.textContent =
-                'Создан';
+            this.api.apiKey = result.apiKey;
 
-            this.api.apiKey =
-                result.apiKey;
-
-            this.notify.success(
-                'API-ключ успешно обновлён.'
-            );
+            this.notify.success('API-ключ успешно обновлён.');
 
         } catch (e) {
 
-            this.notify.error(
-                e.message
-            );
+            this.notify.error(e.message);
 
         }
 
