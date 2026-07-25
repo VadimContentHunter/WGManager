@@ -8,6 +8,7 @@ use App\Controllers\ApiKeyController;
 use App\Controllers\AuthController;
 use App\Controllers\ClientController;
 use App\Controllers\SettingsController;
+use App\Controllers\SetupController;
 use App\Controllers\WebController;
 use RuntimeException;
 
@@ -95,7 +96,7 @@ class Router
                     $request,
                     $response,
                     new ClientService(
-                        new WireGuardService( $settings, new CommandService())
+                        new WireGuardService($settings, new CommandService())
                     )
                 ),
 
@@ -112,6 +113,14 @@ class Router
                 ),
 
                 AuthController::class => new AuthController(
+                    $response
+                ),
+
+                SetupController::class => new SetupController(
+                    new WireGuardSetupService(
+                        $settings,
+                        new CommandService()
+                    ),
                     $response
                 ),
 
