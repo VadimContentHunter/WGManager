@@ -217,6 +217,59 @@ class WireGuardService
     }
 
     /**
+     * Возвращает имя интерфейса WireGuard.
+     *
+     * @return string
+     */
+    private function getInterfaceName(): string
+    {
+        return pathinfo(
+            $this->configPath,
+            PATHINFO_FILENAME
+        );
+    }
+
+    /**
+     * Возвращает путь к каталогу клиента.
+     *
+     * @throws RuntimeException
+     */
+    public function getClientDirectory(string $name): string
+    {
+        return $this->getClientsPath()
+            . DIRECTORY_SEPARATOR
+            . $name;
+    }
+
+    /**
+     * Возвращает содержимое client.conf.
+     *
+     * @throws RuntimeException
+     */
+    public function getClientConfig(string $name): string
+    {
+        $path = $this->getClientDirectory($name)
+            . DIRECTORY_SEPARATOR
+            . 'client.conf';
+
+        if (!is_file($path)) {
+            throw new RuntimeException(
+                'Конфигурация клиента не найдена.'
+            );
+        }
+
+        $config = file_get_contents($path);
+
+        if ($config === false) {
+            throw new RuntimeException(
+                'Не удалось прочитать конфигурацию клиента.'
+            );
+        }
+
+        return $config;
+    }
+
+    /**
      * Проверяет существование Peer по публичному ключу.
      *
      * @param string $publicKey Публичный ключ.
@@ -272,6 +325,67 @@ class WireGuardService
         );
 
         $this->peers[] = $peer;
+    }
+
+    /**
+     * Создает каталог клиента.
+     *
+     * @throws RuntimeException
+     */
+    public function createClientDirectory(string $name): string
+    {
+        $directory = $this->getClientDirectory($name);
+
+        if (is_dir($directory)) {
+            throw new RuntimeException(
+                'Каталог клиента уже существует.'
+            );
+        }
+
+        if (!mkdir($directory, 0755, true)) {
+            throw new RuntimeException(
+                'Не удалось создать каталог клиента.'
+            );
+        }
+
+        return $directory;
+    }
+
+    /**
+     * Создает все файлы клиента.
+     *
+     * @param string $name
+     * @param array<string, string> $client
+     *
+     * @throws RuntimeException
+     */
+    public function createClientFiles(
+        string $name,
+        array $client
+    ): void {
+        $this->createClientDirectory($name);
+        try {
+            $this->saveClientFile(
+                $name,
+                'private.key',
+                $client[self::PEER_PRIVATE_KEY]
+            );
+
+            $this->saveClientFile(
+                $name,
+                'public.key',
+                $client[self::PEER_PUBLIC_KEY]
+            );
+
+            $this->saveClientFile(
+                $name,
+                'client.conf',
+                $this->buildClientConfig($client)
+            );
+        } catch (\Throwable $e) {
+            $this->deleteClientDirectory($name);
+            throw $e;
+        }
     }
 
     /**
@@ -331,6 +445,33 @@ class WireGuardService
         }
 
         return false;
+    }
+
+    /**
+     * Удаляет каталог клиента.
+     */
+    public function deleteClientDirectory(string $name): void
+    {
+        $directory = $this->getClientDirectory($name);
+
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        foreach (scandir($directory) as $file) {
+
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+
+            unlink(
+                $directory
+                    . DIRECTORY_SEPARATOR
+                    . $file
+            );
+        }
+
+        rmdir($directory);
     }
 
     /**
@@ -435,7 +576,8 @@ class WireGuardService
             $config[] = '[Peer]';
             foreach ($peer as $key => $value) {
 
-                if (in_array($key,
+                if (in_array(
+                    $key,
                     [
                         self::PEER_NAME,
                         'Directory',
@@ -502,6 +644,27 @@ class WireGuardService
         if ($result === false) {
             throw new RuntimeException(
                 'Не удалось сохранить конфигурацию WireGuard.'
+            );
+        }
+    }
+
+    /**
+     * Сохраняет файл клиента.
+     *
+     * @throws RuntimeException
+     */
+    public function saveClientFile(
+        string $name,
+        string $filename,
+        string $content
+    ): void {
+        $path = $this->getClientDirectory($name)
+            . DIRECTORY_SEPARATOR
+            . $filename;
+
+        if (file_put_contents($path, $content) === false) {
+            throw new RuntimeException(
+                "Не удалось сохранить {$filename}."
             );
         }
     }
@@ -689,18 +852,5 @@ class WireGuardService
         $peer['Directory'] = $directory;
         $peer['Status'] = 'OK';
         return $peer;
-    }
-
-    /**
-     * Возвращает имя интерфейса WireGuard.
-     *
-     * @return string
-     */
-    private function getInterfaceName(): string
-    {
-        return pathinfo(
-            $this->configPath,
-            PATHINFO_FILENAME
-        );
     }
 }
