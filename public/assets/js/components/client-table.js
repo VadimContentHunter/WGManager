@@ -49,7 +49,7 @@ class ClientTable {
 
             this.table.innerHTML = `
                 <tr>
-                    <td colspan="6" class="empty">
+                    <td colspan="7" class="empty">
                         Клиенты отсутствуют
                     </td>
                 </tr>
@@ -64,43 +64,69 @@ class ClientTable {
     }
 
     renderRow(client) {
-
         return `
-        <tr data-key="${client.PublicKey}">
-            <td>${client.Name ?? '-'}</td>
-            <td>${client.AllowedIPs ?? '-'}</td>
-            <td>${client.LastHandshake ?? '-'}</td>
-            <td>${client.ReceiveBytes ?? '-'}</td>
-            <td>${client.TransmitBytes ?? '-'}</td>
-            <td>
+            <tr data-key="${client.PublicKey}">
+                <td>${client.Name ?? '-'}</td>
+                <td>${client.AllowedIPs ?? '-'}</td>
+                <td>${this.renderStatus(client.Status)}</td>
+                <td>${client.LastHandshake ?? '-'}</td>
+                <td>${client.ReceiveBytes ?? '-'}</td>
+                <td>${client.TransmitBytes ?? '-'}</td>
+                <td>
 
-                <button
-                    class="action download"
-                    data-action="download"
-                    data-key="${client.PublicKey}"
-                >
-                    <i class="fa-solid fa-download"></i>
-                </button>
+                    <button
+                        class="action download"
+                        data-action="download"
+                        data-key="${client.PublicKey}"
+                    >
+                        <i class="fa-solid fa-download"></i>
+                    </button>
 
-                <button
-                    class="action edit"
-                    data-action="edit"
-                    data-key="${client.PublicKey}"
-                >
-                    <i class="fa-solid fa-pen"></i>
-                </button>
+                    <button
+                        class="action edit"
+                        data-action="edit"
+                        data-key="${client.PublicKey}"
+                    >
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
 
-                <button
-                    class="action delete"
-                    data-action="delete"
-                    data-key="${client.PublicKey}"
-                >
-                    <i class="fa-solid fa-trash"></i>
-                </button>
+                    <button
+                        class="action delete"
+                        data-action="delete"
+                        data-key="${client.PublicKey}"
+                    >
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
 
-            </td>
-        </tr>
+                </td>
+            </tr>
         `;
+    }
+
+    renderStatus(status = '') {
+        switch (status) {
+            case 'OK':
+                return `
+                    <span class="status status-ok">
+                        OK
+                    </span>
+                `;
+
+            case 'Некорректный':
+                return `
+                    <span class="status status-error">
+                        Некорректный
+                    </span>
+                `;
+
+            default:
+                return `
+                    <span class="status">
+                        —
+                    </span>
+                `;
+        }
+
     }
 
     handleClick(event) {

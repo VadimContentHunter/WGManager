@@ -5,7 +5,7 @@
     "serverPort": 51820,
     "dns": "1.1.1.1,8.8.8.8",
     "configPath": "config/wg0.conf",
-    "clientsPath": "/etc/wireguard/clients",
+    "clientsPath": "config/clients",
     "endpoint": "",
     "allowedIps": "",
     "persistentKeepalive": ""

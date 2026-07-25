@@ -39,6 +39,7 @@
                 <tr>
                     <th>Имя</th>
                     <th>IP</th>
+                    <th>Статус</th>
                     <th>Handshake</th>
                     <th>RX</th>
                     <th>TX</th>
@@ -48,7 +49,7 @@
 
             <tbody id="clients-table">
                 <tr>
-                    <td colspan="6" class="empty">
+                    <td colspan="7" class="empty">
                         Клиенты отсутствуют
                     </td>
                 </tr>
