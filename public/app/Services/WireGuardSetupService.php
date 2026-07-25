@@ -9,20 +9,21 @@ use RuntimeException;
 class WireGuardSetupService
 {
     public function __construct(
+        private readonly SettingsService $settings,
         private readonly CommandService $command,
     ) {}
 
     /**
-     * Возвращает информацию о системе.
+     * Проверяет состояние WireGuard.
      *
      * @return array<string, mixed>
      */
-    public function getInfo(): array
+    public function check(): array
     {
         return [
             'wireGuard' => [
                 'installed' => $this->isWireGuardInstalled(),
-                'version'   => $this->getWireGuardVersion(),
+                'version' => $this->getWireGuardVersion(),
             ],
 
             'wgQuick' => [
@@ -34,17 +35,17 @@ class WireGuardSetupService
             'interface' => [
                 'running' => $this->isRunning(),
             ],
-        ];
-    }
 
-    /**
-     * Проверяет состояние WireGuard.
-     *
-     * @return array<string, mixed>
-     */
-    public function check(): array
-    {
-        return [];
+            'config' => [
+                'exists' => $this->configExists(),
+                'readable' => $this->configReadable(),
+            ],
+
+            'clients' => [
+                'exists' => $this->clientsDirectoryExists(),
+                'writable' => $this->clientsDirectoryWritable(),
+            ],
+        ];
     }
 
     /**
@@ -188,21 +189,87 @@ class WireGuardSetupService
      */
     public function detectPackageManager(): ?string
     {
-        foreach (
-            [
+        foreach ([
                 'apt',
                 'dnf',
                 'yum',
                 'apk',
                 'pacman',
                 'zypper',
-            ] as $manager
-        ) {
+        ] as $manager ) {
             if ($this->command->exists($manager)) {
                 return $manager;
             }
         }
 
         return null;
+    }
+
+    /**
+     * Проверяет существование конфигурации WireGuard.
+     *
+     * @return bool
+     * true  - Конфигурация существует.
+     * false - Конфигурация отсутствует.
+     */
+    public function configExists(): bool
+    {
+        return file_exists(
+            $this->settings->get(
+                SettingsService::SETTING_CONFIG_PATH,
+                '/etc/wireguard/wg0.conf'
+            )
+        );
+    }
+
+    /**
+     * Проверяет доступность конфигурации WireGuard для чтения.
+     *
+     * @return bool
+     * true  - Конфигурация доступна для чтения.
+     * false - Конфигурация недоступна для чтения.
+     */
+    public function configReadable(): bool
+    {
+        return is_readable(
+            $this->settings->get(
+                SettingsService::SETTING_CONFIG_PATH,
+                '/etc/wireguard/wg0.conf'
+            )
+        );
+    }
+
+    /**
+     * Проверяет существование каталога клиентов.
+     *
+     * @return bool
+     * true  - Каталог существует.
+     * false - Каталог отсутствует.
+     */
+    public function clientsDirectoryExists(): bool
+    {
+        return is_dir(
+            $this->settings->get(
+                SettingsService::SETTING_CLIENTS_PATH,
+                '/etc/wireguard/clients'
+            )
+        );
+    }
+
+    /**
+     * Проверяет доступность каталога клиентов для записи.
+     *
+     * @return bool
+     * true  - Каталог доступен для записи.
+     * false - Каталог недоступен для записи.
+     */
+    public function clientsDirectoryWritable(): bool
+    {
+        return is_writable(
+            $this->settings->get(
+                SettingsService::SETTING_CLIENTS_PATH,
+                '/etc/wireguard/clients'
+            )
+        );
     }
 }

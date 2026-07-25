@@ -18,6 +18,8 @@ class SettingsService
      */
     private array $settings = [];
 
+    public const SETTING_CONFIG_PATH = 'configPath';
+    public const SETTING_CLIENTS_PATH = 'clientsPath';
     private const ALLOWED_KEYS = [
         'apiKey',
         'network',
