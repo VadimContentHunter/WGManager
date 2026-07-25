@@ -202,4 +202,43 @@
 </div>
 
 <div id="client-modal" class="modal hidden">
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="fa-solid fa-user-plus"></i>
+                Добавить клиента
+            </h2>
+
+            <button
+                id="client-close"
+                class="modal-close"
+                type="button">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <div class="field">
+                <label for="client-name">
+                    Имя клиента
+                </label>
+
+                <input
+                    id="client-name"
+                    type="text"
+                    placeholder="Например: phone">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="client-cancel">
+                Отмена
+            </button>
+
+            <button id="client-create">
+                <i class="fa-solid fa-plus"></i>
+                Создать
+            </button>
+        </div>
+    </div>
+    
 </div>

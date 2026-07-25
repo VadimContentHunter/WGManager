@@ -14,6 +14,11 @@ class App {
             document.getElementById('client-search')
         );
 
+        this.clientModal = new ClientModal(
+            this.api,
+            this.notify
+        );
+
         this.settingsModal = new SettingsModal(
             this.api,
             this.notify
@@ -28,6 +33,10 @@ class App {
             'refresh-clients'
         );
 
+        this.createButton = document.getElementById(
+            'create-client'
+        );
+
     }
 
     registerEvents() {
@@ -36,20 +45,20 @@ class App {
             () => this.loadClients()
         );
 
-        this.clientTable.onAction = (
-            action,
-            client
-        ) => this.handleClientAction(
-            action,
-            client
+        this.createButton.addEventListener(
+            'click',
+            () => this.clientModal.open()
         );
 
-        document.addEventListener(
-            'auth:required',
-            () => {
+        this.clientModal.onCreate = () => {
+            this.loadClients();
+        };
+
+        this.clientTable.onAction = (action, client) => this.handleClientAction(action,client);
+
+        document.addEventListener('auth:required', () => {
                 this.clientTable.setClients([]);
                 this.apiKeyModal.open();
-
             }
         );
 
