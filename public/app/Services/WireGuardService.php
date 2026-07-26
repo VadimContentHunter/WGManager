@@ -290,11 +290,12 @@ class WireGuardService
         }
 
         return trim(
-            $this->command->runRoot(
+            $this->command->run(
                 sprintf(
                     'printf %%s %s | wg pubkey',
                     escapeshellarg($privateKey)
-                )
+                ),
+                true
             )
         );
     }
@@ -736,6 +737,47 @@ class WireGuardService
     }
 
     /**
+     * Формирует конфигурацию для wg syncconf.
+     *
+     * В отличие от основного конфигурационного файла содержит
+     * только параметры, поддерживаемые командой syncconf.
+     */
+    private function buildRuntimeConfig(): string
+    {
+        $config = [];
+
+        $config[] = '[Interface]';
+        $config[] = 'PrivateKey = ' . (
+            $this->interface[self::INTERFACE_PRIVATE_KEY] ?? ''
+        );
+
+        foreach ($this->peers as $peer) {
+            $config[] = '';
+            $config[] = '[Peer]';
+
+            foreach ($peer as $key => $value) {
+
+                if (in_array(
+                    $key,
+                    [
+                        self::PEER_NAME,
+                        self::PEER_PRIVATE_KEY,
+                        'Directory',
+                        'Status',
+                    ],
+                    true
+                )) {
+                    continue;
+                }
+
+                $config[] = "{$key} = {$value}";
+            }
+        }
+
+        return implode(PHP_EOL, $config) . PHP_EOL;
+    }
+
+    /**
      * Сохраняет конфигурацию WireGuard.
      *
      * @return void
@@ -780,24 +822,50 @@ class WireGuardService
     /**
      * Применяет конфигурацию WireGuard.
      *
-     * @return void
-     *
-     * @throws RuntimeException Если применение завершилось ошибкой.
+     * @throws RuntimeException
      */
     public function apply(): void
     {
-        $interface = escapeshellarg(
-            $this->getInterfaceName()
+        $tempFile = tempnam(
+            sys_get_temp_dir(),
+            'wgmanager_'
         );
 
-        $this->command->runRoot(
-            sprintf(
-                'wg syncconf %s <(wg-quick strip %s)',
-                $interface,
-                $interface
-            ),
-            true
-        );
+        if ($tempFile === false) {
+            throw new RuntimeException(
+                'Не удалось создать временный файл.'
+            );
+        }
+
+        try {
+            file_put_contents(
+                $tempFile,
+                $this->buildRuntimeConfig()
+            );
+
+            if (
+                file_put_contents(
+                    $tempFile,
+                    $this->buildRuntimeConfig()
+                ) === false
+            ) {
+                throw new RuntimeException(
+                    'Не удалось записать временную конфигурацию.'
+                );
+            }
+
+            $this->command->runRoot(
+                sprintf(
+                    'wg syncconf %s %s',
+                    escapeshellarg($this->getInterfaceName()),
+                    escapeshellarg($tempFile)
+                )
+            );
+        } finally {
+            if (is_file($tempFile)) {
+                unlink($tempFile);
+            }
+        }
     }
 
     /**
@@ -813,15 +881,16 @@ class WireGuardService
     public function generateKeyPair(): array
     {
         $privateKey = trim(
-            $this->command->runRoot('wg genkey')
+            $this->command->run('wg genkey')
         );
 
         $publicKey = trim(
-            $this->command->runRoot(
+            $this->command->run(
                 sprintf(
                     'printf %%s %s | wg pubkey',
                     escapeshellarg($privateKey)
-                )
+                ),
+                true
             )
         );
 

@@ -4,6 +4,13 @@ services:
       context: .
       dockerfile: docker/Dockerfile
 
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+
+    devices:
+      - /dev/net/tun:/dev/net/tun
+
     volumes:
       - ./public:/var/www/project
       - ./config/php:/usr/local/etc/php/conf.d
@@ -17,7 +24,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-    command: > 
+    command: >
       sh -c "
         if [ -f /var/www/project/install.sh ]; then
           chmod +x /var/www/project/install.sh;
@@ -30,8 +37,8 @@ services:
     image: nginx:latest
 
     ports:
-      - 80:80
-      - 443:443
+      - "80:80"
+      - "443:443"
 
     volumes:
       - ./public:/var/www/project

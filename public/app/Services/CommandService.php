@@ -13,7 +13,6 @@ class CommandService
         bool $useBash = false,
         bool $sudo = false
     ): string {
-
         if ($sudo) {
             $command = 'sudo -n ' . $command;
         }

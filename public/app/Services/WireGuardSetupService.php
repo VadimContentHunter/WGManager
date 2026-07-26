@@ -78,7 +78,12 @@ class WireGuardSetupService
         $this->command->runRoot(
             sprintf(
                 'wg-quick up %s',
-                $this->getInterfaceName()
+                escapeshellarg(
+                    $this->settings->get(
+                        SettingsService::SETTING_CONFIG_PATH,
+                        '/etc/wireguard/wg0.conf'
+                    )
+                )
             )
         );
     }
@@ -97,7 +102,12 @@ class WireGuardSetupService
         $this->command->runRoot(
             sprintf(
                 'wg-quick down %s',
-                $this->getInterfaceName()
+                escapeshellarg(
+                    $this->settings->get(
+                        SettingsService::SETTING_CONFIG_PATH,
+                        '/etc/wireguard/wg0.conf'
+                    )
+                )
             )
         );
     }
@@ -174,15 +184,24 @@ class WireGuardSetupService
      */
     public function isRunning(): bool
     {
-        try {
+        $interface = pathinfo(
+            $this->settings->get(
+                SettingsService::SETTING_CONFIG_PATH,
+                '/etc/wireguard/wg0.conf'
+            ),
+            PATHINFO_FILENAME
+        );
 
+        try {
             $this->command->runRoot(
-                'wg show'
+                sprintf(
+                    'wg show %s',
+                    escapeshellarg($interface)
+                )
             );
 
             return true;
         } catch (RuntimeException) {
-
             return false;
         }
     }
@@ -252,20 +271,6 @@ class WireGuardSetupService
                 SettingsService::SETTING_CLIENTS_PATH,
                 '/etc/wireguard/clients'
             )
-        );
-    }
-
-    /**
-     * Возвращает имя интерфейса WireGuard.
-     */
-    private function getInterfaceName(): string
-    {
-        return pathinfo(
-            $this->settings->get(
-                SettingsService::SETTING_CONFIG_PATH,
-                '/etc/wireguard/wg0.conf'
-            ),
-            PATHINFO_FILENAME
         );
     }
 

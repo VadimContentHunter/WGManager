@@ -169,18 +169,16 @@ class SystemStatus {
     }
     
     updateButtons() {
+    const installed = this.data.wireGuard?.installed === true;
+    const configured = this.data.config?.exists === true && this.data.config?.readable === true;
+    const running = this.data.interface?.running === true;
+    const root = this.data.permissions?.root === true;
 
-        const installed = this.data.wireGuard?.installed === true;
-        const configured = this.data.config?.exists === true && this.data.config?.readable === true;
-        const running = this.data.interface?.running === true;
-        const root = this.data.permissions?.root === true;
-        
-        this.buttons.initialize.disabled = !installed || !root || configured;
-        this.buttons.start.disabled = !configured || !root || running;
-        this.buttons.stop.disabled = !root || !running;
-        this.buttons.restart.disabled = !root || !running;
-
-    }
+    this.buttons.initialize.disabled = !installed || !root || running;
+    this.buttons.start.disabled = !configured || !root || running;
+    this.buttons.stop.disabled = !root || !running;
+    this.buttons.restart.disabled = !root || !running;
+}
 
     async execute(action) {
         this.disableButtons();
