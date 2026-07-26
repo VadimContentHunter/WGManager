@@ -29,10 +29,6 @@ class SystemStatus {
             'wg-clients'
         );
 
-        this.packageManager = document.getElementById(
-            'wg-package-manager'
-        );
-
         this.buttons = {
 
             initialize: document.getElementById(
@@ -145,9 +141,6 @@ class SystemStatus {
             'Недоступен'
         );
 
-        this.packageManager.textContent =
-            data.packageManager ?? '—';
-
         this.updateButtons();
 
     }
@@ -192,8 +185,15 @@ class SystemStatus {
         this.disableButtons();
         try {
             await this.api.setup[action]();
+            const messages = {
+                initialize: 'WireGuard успешно инициализирован.',
+                start: 'WireGuard успешно запущен.',
+                stop: 'WireGuard успешно остановлен.',
+                restart: 'WireGuard успешно перезапущен.',
+            };
+
             this.notify.success(
-                'Операция успешно выполнена.'
+                messages[action]
             );
         } catch (e) {
             this.notify.error(

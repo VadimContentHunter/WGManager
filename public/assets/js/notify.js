@@ -1,80 +1,76 @@
 class Notify {
 
     constructor() {
-
-        this.container = document.getElementById(
-            'notify'
-        );
-
+        this.container = document.getElementById('notify');
+        this.notifications = [];
+        this.maxNotifications = 10;
     }
 
     success(message) {
 
-        this.show(
-            message,
-            'success'
-        );
+        this.show(message,'success');
 
     }
 
     error(message) {
-
-        this.show(
-            message,
-            'error'
-        );
-
+        this.show(message,'error');
     }
 
     warning(message) {
-
-        this.show(
-            message,
-            'warning'
-        );
+        this.show(message,'warning');
 
     }
 
     info(message) {
-
-        this.show(
-            message,
-            'info'
-        );
-
+        this.show(message,'info');
     }
 
     show(message, type = 'info') {
+        const notification = document.createElement('div');
 
-        this.container.innerHTML = `
-            <div class="notify notify-${type}">
-                <span class="notify-message">
-                    ${message}
-                </span>
+        notification.className =
+            `notify notify-${type}`;
 
-                <button
-                    class="notify-close"
-                    type="button"
-                    aria-label="Закрыть"
-                >
-                    &times;
-                </button>
-            </div>
+        notification.innerHTML = `
+            <span class="notify-message">
+                ${message}
+            </span>
+
+            <button
+                class="notify-close"
+                type="button"
+                aria-label="Закрыть"
+            >
+                &times;
+            </button>
         `;
 
-        this.container
+        notification
             .querySelector('.notify-close')
             .addEventListener(
                 'click',
-                () => this.hide()
+                () => this.remove(notification)
             );
 
+        this.container.prepend(notification);
+        this.notifications.unshift(notification);
+        while (this.notifications.length > this.maxNotifications) {
+            this.remove(
+                this.notifications.at(-1),
+                false
+            );
+        }
+
     }
 
-    hide() {
+    remove(notification, removeFromArray = true) {
+        notification.remove();
+        if (!removeFromArray) {
+            return;
+        }
 
-        this.container.innerHTML = '';
+        this.notifications =
+            this.notifications.filter(item => item !== notification);
 
     }
-
 }
