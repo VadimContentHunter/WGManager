@@ -1,6 +1,8 @@
 {
     "cSpell.ignoreWords": [
+        "NOPASSWD",
         "noconfirm",
-        "pacman"
+        "pacman",
+        "wgmanager"
     ]
 }

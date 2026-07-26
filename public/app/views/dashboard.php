@@ -34,14 +34,14 @@
                 </tr>
 
                 <tr>
-                    <td>wg-quick</td>
-                    <td id="wg-quick">
+                    <td>Права администратора</td>
+                    <td id="wg-root">
                         <span class="status">—</span>
                     </td>
                 </tr>
 
                 <tr>
-                    <td>Интерфейс</td>
+                    <td>Состояние WireGuard</td>
                     <td id="wg-running">
                         <span class="status">—</span>
                     </td>
@@ -58,13 +58,6 @@
                     <td>Каталог клиентов</td>
                     <td id="wg-clients">
                         <span class="status">—</span>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>Пакетный менеджер</td>
-                    <td id="wg-package-manager">
-                        —
                     </td>
                 </tr>
 

@@ -8,20 +8,15 @@ use RuntimeException;
 
 class CommandService
 {
-    /**
-     * Выполняет системную команду.
-     *
-     * @param string $command Команда.
-     * @param bool $useBash Выполнить через Bash.
-     *
-     * @return string
-     *
-     * @throws RuntimeException
-     */
-    public function run(
+    private function execute(
         string $command,
-        bool $useBash = false
+        bool $useBash = false,
+        bool $sudo = false
     ): string {
+
+        if ($sudo) {
+            $command = 'sudo -n ' . $command;
+        }
 
         if ($useBash) {
             $command = sprintf(
@@ -51,6 +46,47 @@ class CommandService
     }
 
     /**
+     * Выполняет системную команду.
+     *
+     * @param string $command Команда.
+     * @param bool $useBash Выполнить через Bash.
+     *
+     * @return string
+     *
+     * @throws RuntimeException
+     */
+    public function run(
+        string $command,
+        bool $useBash = false
+    ): string {
+        return $this->execute(
+            $command,
+            $useBash
+        );
+    }
+
+    /**
+     * Выполняет системную команду с правами root.
+     *
+     * @param string $command Команда.
+     * @param bool $useBash Выполнить через Bash.
+     *
+     * @return string
+     *
+     * @throws RuntimeException
+     */
+    public function runRoot(
+        string $command,
+        bool $useBash = false
+    ): string {
+        return $this->execute(
+            $command,
+            $useBash,
+            true
+        );
+    }
+
+    /**
      * Проверяет существование команды.
      *
      * @param string $command Имя команды.
@@ -63,7 +99,7 @@ class CommandService
     {
         try {
 
-            $this->run(
+            $this->execute(
                 "command -v {$command}",
                 true
             );

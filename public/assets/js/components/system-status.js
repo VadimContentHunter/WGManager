@@ -13,8 +13,8 @@ class SystemStatus {
             'wg-version'
         );
 
-        this.wgQuick = document.getElementById(
-            'wg-quick'
+        this.root = document.getElementById(
+            'wg-root'
         );
 
         this.running = document.getElementById(
@@ -112,10 +112,10 @@ class SystemStatus {
             data.wireGuard?.version ?? '—';
 
         this.renderStatus(
-            this.wgQuick,
-            data.wgQuick?.installed,
-            'Установлен',
-            'Не установлен'
+            this.root,
+            data.permissions?.root,
+            'Есть',
+            'Нет'
         );
 
         this.renderStatus(
@@ -173,11 +173,12 @@ class SystemStatus {
         const installed = this.data.wireGuard?.installed === true;
         const configured = this.data.config?.exists === true && this.data.config?.readable === true;
         const running = this.data.interface?.running === true;
+        const root = this.data.permissions?.root === true;
         
-        this.buttons.initialize.disabled = !installed || configured;
-        this.buttons.start.disabled = !configured || running;
-        this.buttons.stop.disabled = !running;
-        this.buttons.restart.disabled = !running;
+        this.buttons.initialize.disabled = !installed || !root || configured;
+        this.buttons.start.disabled = !configured || !root || running;
+        this.buttons.stop.disabled = !root || !running;
+        this.buttons.restart.disabled = !root || !running;
 
     }
 

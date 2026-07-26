@@ -44,6 +44,10 @@ class WireGuardSetupService
                 'exists' => $this->clientsDirectoryExists(),
                 'writable' => $this->clientsDirectoryWritable(),
             ],
+
+            'permissions' => [
+                'root' => $this->hasRootPermissions(),
+            ],
         ];
     }
 
@@ -71,7 +75,7 @@ class WireGuardSetupService
             return;
         }
 
-        $this->command->run(
+        $this->command->runRoot(
             sprintf(
                 'wg-quick up %s',
                 $this->getInterfaceName()
@@ -90,7 +94,7 @@ class WireGuardSetupService
             return;
         }
 
-        $this->command->run(
+        $this->command->runRoot(
             sprintf(
                 'wg-quick down %s',
                 $this->getInterfaceName()
@@ -172,7 +176,7 @@ class WireGuardSetupService
     {
         try {
 
-            $this->command->run(
+            $this->command->runRoot(
                 'wg show'
             );
 
@@ -263,5 +267,25 @@ class WireGuardSetupService
             ),
             PATHINFO_FILENAME
         );
+    }
+
+    /**
+     * Проверяет наличие прав администратора.
+     *
+     * @return bool
+     * true  - Команды с правами root доступны.
+     * false - Команды с правами root недоступны.
+     */
+    public function hasRootPermissions(): bool
+    {
+        try {
+
+            $this->command->runRoot('wg --version');
+
+            return true;
+        } catch (RuntimeException) {
+
+            return false;
+        }
     }
 }

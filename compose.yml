@@ -17,7 +17,14 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-    command: php-fpm
+    command: > 
+      sh -c "
+        if [ -f /var/www/project/install.sh ]; then
+          chmod +x /var/www/project/install.sh;
+          /var/www/project/install.sh;
+        fi;
+        exec php-fpm
+      "
 
   nginx:
     image: nginx:latest

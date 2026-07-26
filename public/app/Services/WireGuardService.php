@@ -290,7 +290,7 @@ class WireGuardService
         }
 
         return trim(
-            $this->command->run(
+            $this->command->runRoot(
                 sprintf(
                     'printf %%s %s | wg pubkey',
                     escapeshellarg($privateKey)
@@ -790,7 +790,7 @@ class WireGuardService
             $this->getInterfaceName()
         );
 
-        $this->command->run(
+        $this->command->runRoot(
             sprintf(
                 'wg syncconf %s <(wg-quick strip %s)',
                 $interface,
@@ -813,11 +813,11 @@ class WireGuardService
     public function generateKeyPair(): array
     {
         $privateKey = trim(
-            $this->command->run('wg genkey')
+            $this->command->runRoot('wg genkey')
         );
 
         $publicKey = trim(
-            $this->command->run(
+            $this->command->runRoot(
                 sprintf(
                     'printf %%s %s | wg pubkey',
                     escapeshellarg($privateKey)

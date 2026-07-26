@@ -40,6 +40,23 @@ fi
 
 install_if_missing nginx
 install_if_missing wireguard-tools
+install_if_missing sudo
+
+echo "Настройка sudo для WGManager..."
+SUDOERS_FILE="/etc/sudoers.d/wgmanager"
+cat > "$SUDOERS_FILE" <<EOF
+www-data ALL=(root) NOPASSWD: /usr/bin/wg
+www-data ALL=(root) NOPASSWD: /usr/bin/wg-quick
+www-data ALL=(root) NOPASSWD: /usr/sbin/ip
+EOF
+chmod 440 "$SUDOERS_FILE"
+if visudo -cf "$SUDOERS_FILE"; then
+    echo "Права sudo успешно настроены."
+else
+    echo "Ошибка проверки sudoers."
+    rm -f "$SUDOERS_FILE"
+    exit 1
+fi
 
 echo
 echo "WGManager: все необходимые зависимости установлены."

@@ -119,7 +119,11 @@ class Router
                 SetupController::class => new SetupController(
                     new WireGuardSetupService(
                         $settings,
-                        new CommandService()
+                        new CommandService(),
+                        new WireGuardService(
+                            $settings,
+                            new CommandService()
+                        )
                     ),
                     $response
                 ),
