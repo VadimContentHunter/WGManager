@@ -69,12 +69,6 @@ class Api {
             get: () =>
                 this.get('/api/setup'),
 
-            install: () =>
-                this.post('/api/setup/install'),
-
-            update: () =>
-                this.post('/api/setup/update'),
-
             initialize: () =>
                 this.post('/api/setup/initialize'),
 

@@ -74,20 +74,6 @@
         <div class="actions system-actions">
 
             <button
-                id="wg-install"
-                disabled>
-                <i class="fa-solid fa-download"></i>
-                Установить
-            </button>
-
-            <button
-                id="wg-update"
-                disabled>
-                <i class="fa-solid fa-arrow-up"></i>
-                Обновить
-            </button>
-
-            <button
                 id="wg-initialize"
                 disabled>
                 <i class="fa-solid fa-wrench"></i>

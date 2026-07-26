@@ -34,24 +34,6 @@ class SetupController
     }
 
     /**
-     * Устанавливает WireGuard.
-     */
-    public function install(): void
-    {
-        $this->setup->install();
-        $this->response->success();
-    }
-
-    /**
-     * Обновляет WireGuard.
-     */
-    public function update(): void
-    {
-        $this->setup->update();
-        $this->response->success();
-    }
-
-    /**
      * Запускает интерфейс WireGuard.
      */
     public function start(): void

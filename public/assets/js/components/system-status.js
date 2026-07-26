@@ -35,14 +35,6 @@ class SystemStatus {
 
         this.buttons = {
 
-            install: document.getElementById(
-                'wg-install'
-            ),
-
-            update: document.getElementById(
-                'wg-update'
-            ),
-
             initialize: document.getElementById(
                 'wg-initialize'
             ),
@@ -66,16 +58,6 @@ class SystemStatus {
     }
 
     registerEvents() {
-
-        this.buttons.install.addEventListener(
-            'click',
-            () => this.execute('install')
-        );
-
-        this.buttons.update.addEventListener(
-            'click',
-            () => this.execute('update')
-        );
 
         this.buttons.initialize.addEventListener(
             'click',
@@ -198,9 +180,7 @@ class SystemStatus {
         const installed = this.data.wireGuard?.installed === true;
         const configured = this.data.config?.exists === true && this.data.config?.readable === true;
         const running = this.data.interface?.running === true;
-
-        this.buttons.install.disabled = installed;
-        this.buttons.update.disabled = !installed;
+        
         this.buttons.initialize.disabled = !installed || configured;
         this.buttons.start.disabled = !configured || running;
         this.buttons.stop.disabled = !running;

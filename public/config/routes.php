@@ -55,14 +55,6 @@ return [
         'GET' => [SetupController::class, 'index'],
     ],
 
-    '#^api/setup/install$#' => [
-        'POST' => [SetupController::class, 'install'],
-    ],
-
-    '#^api/setup/update$#' => [
-        'POST' => [SetupController::class, 'update'],
-    ],
-
     '#^api/setup/initialize$#' => [
         'POST' => [SetupController::class, 'initialize'],
     ],

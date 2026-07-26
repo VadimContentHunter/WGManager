@@ -33,6 +33,10 @@ class WireGuardService
     private const SETTING_ALLOWED_IPS = 'allowedIps';
     private const SETTING_PERSISTENT_KEEPALIVE = 'persistentKeepalive';
     private const SETTING_CLIENTS_PATH = 'clientsPath';
+    private const SETTING_NETWORK = 'network';
+
+    private const DEFAULT_NETWORK = '10.0.0.1/24';
+    private const DEFAULT_PORT = '51820';
 
     /**
      * Ключи Peer.
@@ -114,10 +118,97 @@ class WireGuardService
      */
     public function reload(): void
     {
+        $this->reset();
+        $this->load();
+    }
+
+    /**
+     * Сбрасывает загруженную конфигурацию.
+     */
+    private function reset(): void
+    {
         $this->interface = [];
         $this->peers = [];
+    }
 
-        $this->load();
+    /**
+     * Выполняет инициализацию или переинициализацию WireGuard.
+     *
+     * Генерирует новую конфигурацию сервера и обновляет
+     * конфигурации существующих клиентов.
+     *
+     * @throws RuntimeException
+     */
+    public function initialize(): void
+    {
+        $interface = $this->interface;
+        $peers = $this->peers;
+        
+        try {
+            $this->reset();
+            $keys = $this->generateKeyPair();
+            $this->buildInterface(
+                $keys['privateKey']
+            );
+
+            $this->peers = $peers;
+            $this->ensureClientsDirectory();
+            $this->save();
+            $this->rebuildClientConfigs();
+        } catch (\Throwable $e) {
+            $this->interface = $interface;
+            $this->peers = $peers;
+
+            throw $e;
+        }
+    }
+
+    public function isInitialized(): bool
+    {
+        return
+            isset(
+                $this->interface[self::INTERFACE_PRIVATE_KEY]
+            )
+            && $this->interface[self::INTERFACE_PRIVATE_KEY] !== '';
+    }
+
+    /**
+     * Пересоздает конфигурации всех клиентов.
+     *
+     * @throws RuntimeException
+     */
+    public function rebuildClientConfigs(): void
+    {
+        foreach ($this->getPeers() as $peer) {
+            $name = $peer[self::PEER_NAME] ?? '';
+            if ($name === '') {
+                continue;
+            }
+            $this->saveClientFile(
+                $name,
+                'client.conf',
+                $this->buildClientConfig($peer)
+            );
+        }
+    }
+    
+
+    /**
+     * Заполняет секцию Interface.
+     */
+    private function buildInterface(string $privateKey): void
+    {
+        $this->interface = [
+            self::INTERFACE_PRIVATE_KEY => $privateKey,
+            self::INTERFACE_ADDRESS => $this->settings->get(
+                self::SETTING_NETWORK,
+                self::DEFAULT_NETWORK
+            ),
+            self::INTERFACE_LISTEN_PORT => (string) $this->settings->get(
+                self::SETTING_SERVER_PORT,
+                self::DEFAULT_PORT
+            ),
+        ];
     }
 
     /**
@@ -391,6 +482,26 @@ class WireGuardService
     }
 
     /**
+     * Создает каталог клиентов при необходимости.
+     *
+     * @throws RuntimeException
+     */
+    private function ensureClientsDirectory(): void
+    {
+        $path = $this->getClientsPath();
+
+        if (is_dir($path)) {
+            return;
+        }
+
+        if (!mkdir($path, 0755, true)) {
+            throw new RuntimeException(
+                'Не удалось создать каталог клиентов.'
+            );
+        }
+    }
+
+    /**
      * Обновляет существующего Peer.
      *
      * @param string $publicKey Публичный ключ Peer.
@@ -495,8 +606,7 @@ class WireGuardService
      */
     private function parse(array $lines): void
     {
-        $this->interface = [];
-        $this->peers = [];
+        $this->reset();
 
         $section = null;
 

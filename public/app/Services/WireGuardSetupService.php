@@ -11,6 +11,7 @@ class WireGuardSetupService
     public function __construct(
         private readonly SettingsService $settings,
         private readonly CommandService $command,
+        private readonly WireGuardService $wireGuard,
     ) {}
 
     /**
@@ -30,8 +31,6 @@ class WireGuardSetupService
                 'installed' => $this->isWgQuickInstalled(),
             ],
 
-            'packageManager' => $this->detectPackageManager(),
-
             'interface' => [
                 'running' => $this->isRunning(),
             ],
@@ -49,63 +48,65 @@ class WireGuardSetupService
     }
 
     /**
-     * Выполняет первоначальную настройку WireGuard.
+     * Выполняет инициализацию WireGuard.
+     *
+     * Генерирует новую конфигурацию сервера
+     * и обновляет конфигурации клиентов.
+     *
+     * @throws RuntimeException
      */
     public function initialize(): void
     {
-        throw new RuntimeException(
-            'Метод пока не реализован.'
-        );
+        $this->wireGuard->initialize();
     }
 
     /**
-     * Устанавливает WireGuard.
-     */
-    public function install(): void
-    {
-        throw new RuntimeException(
-            'Метод пока не реализован.'
-        );
-    }
-
-    /**
-     * Обновляет WireGuard.
-     */
-    public function update(): void
-    {
-        throw new RuntimeException(
-            'Метод пока не реализован.'
-        );
-    }
-
-    /**
-     * Запускает интерфейс.
+     * Запускает интерфейс WireGuard.
+     *
+     * @throws RuntimeException
      */
     public function start(): void
     {
-        throw new RuntimeException(
-            'Метод пока не реализован.'
+        if ($this->isRunning()) {
+            return;
+        }
+
+        $this->command->run(
+            sprintf(
+                'wg-quick up %s',
+                $this->getInterfaceName()
+            )
         );
     }
 
     /**
-     * Останавливает интерфейс.
+     * Останавливает интерфейс WireGuard.
+     *
+     * @throws RuntimeException
      */
     public function stop(): void
     {
-        throw new RuntimeException(
-            'Метод пока не реализован.'
+        if (!$this->isRunning()) {
+            return;
+        }
+
+        $this->command->run(
+            sprintf(
+                'wg-quick down %s',
+                $this->getInterfaceName()
+            )
         );
     }
 
     /**
-     * Перезапускает интерфейс.
+     * Перезапускает интерфейс WireGuard.
+     *
+     * @throws RuntimeException
      */
     public function restart(): void
     {
-        throw new RuntimeException(
-            'Метод пока не реализован.'
-        );
+        $this->stop();
+        $this->start();
     }
 
     /**
@@ -183,29 +184,6 @@ class WireGuardSetupService
     }
 
     /**
-     * Определяет пакетный менеджер.
-     *
-     * @return string|null
-     */
-    public function detectPackageManager(): ?string
-    {
-        foreach ([
-                'apt',
-                'dnf',
-                'yum',
-                'apk',
-                'pacman',
-                'zypper',
-        ] as $manager ) {
-            if ($this->command->exists($manager)) {
-                return $manager;
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * Проверяет существование конфигурации WireGuard.
      *
      * @return bool
@@ -270,6 +248,20 @@ class WireGuardSetupService
                 SettingsService::SETTING_CLIENTS_PATH,
                 '/etc/wireguard/clients'
             )
+        );
+    }
+
+    /**
+     * Возвращает имя интерфейса WireGuard.
+     */
+    private function getInterfaceName(): string
+    {
+        return pathinfo(
+            $this->settings->get(
+                SettingsService::SETTING_CONFIG_PATH,
+                '/etc/wireguard/wg0.conf'
+            ),
+            PATHINFO_FILENAME
         );
     }
 }
