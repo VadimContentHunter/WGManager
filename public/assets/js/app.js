@@ -9,6 +9,11 @@ class App {
     initComponents() {
         this.api = new Api();
         this.notify = new Notify();
+        this.systemStatus = new SystemStatus(
+            this.api,
+            this.notify
+        );
+
         this.clientTable = new ClientTable(
             document.getElementById('clients-table'),
             document.getElementById('client-search')
@@ -74,15 +79,14 @@ class App {
         }
 
         await this.settingsModal.load();
+        await this.systemStatus.load();
         await this.loadClients();
 
     }
 
     async loadClients() {
         try {
-            const response = await this.api.get(
-                '/api/clients'
-            );
+            const response = await this.api.clients.list();
 
             this.clientTable.setClients(
                 response.data ?? []
@@ -94,6 +98,7 @@ class App {
             );
 
         }
+
     }
 
     async handleClientAction(action, client) {
@@ -114,17 +119,16 @@ class App {
 
     async downloadClient(client) {
         try {
-            await this.api.download(
-                `/api/clients/${client.PublicKey}/config`,
+            await this.api.clients.download(
+                client.PublicKey,
                 `${client.Name}.conf`
             );
-
         } catch (e) {
             this.notify.error(
                 e.message
             );
 
-        } finally {}
+        }
 
     }
 

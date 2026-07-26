@@ -41,7 +41,8 @@ $content = $content ?? '';
     <script src="/assets/js/components/settings-modal.js"></script>
     <script src="/assets/js/components/client-modal.js"></script>
     <script src="/assets/js/components/api-key-modal.js"></script>
-
+    <script src="/assets/js/components/system-status.js"></script>
+    
     <script src="/assets/js/app.js"></script>
 </body>
 

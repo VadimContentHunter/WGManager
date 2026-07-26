@@ -91,7 +91,7 @@ class SettingsModal {
     }
 
     async loadSettings() {
-        const response = await this.api.get('/api/settings');
+        const response = await this.api.settings.get();
         const settings = response.data ?? {};
 
         this.configPath.value = settings.configPath ?? '';
@@ -108,7 +108,7 @@ class SettingsModal {
         this.setLoading(true);
 
         try {
-            await this.api.put('/api/settings', {
+            await this.api.settings.update({
                 configPath: this.configPath.value,
                 clientsPath: this.clientsPath.value,
                 server: this.server.value,
@@ -130,7 +130,7 @@ class SettingsModal {
     }
 
     async loadApiKey() {
-        const response = await this.api.get('/api/api-key');
+        const response = await this.api.apiKeys.get();
         const result = response.data ?? {};
 
         this.apiKey.value = result.apiKey ?? '';
@@ -146,7 +146,7 @@ class SettingsModal {
         this.setLoading(true);
 
         try {
-            const response = await this.api.put('/api/api-key');
+            const response = await this.api.apiKeys.rotate();
             const result = response.data ?? {};
 
             this.apiKey.value = result.apiKey ?? '';

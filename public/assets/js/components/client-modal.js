@@ -135,30 +135,29 @@ class ClientModal {
         `;
 
         try {
-            const client = await this.api.post('/api/clients', {
-                name: name
+            const response = await this.api.clients.create({
+                name
             });
 
             this.notify.success(
                 'Клиент успешно создан.'
             );
-
             this.close();
-            if (this.onCreate) {
-                this.onCreate(client);
-            }
+            this.onCreate?.(
+                response.data
+            );
 
-        } catch (error) {
-            if (error.message === 'Клиент уже существует.') {
+        } catch (e) {
+            if (e.message === 'Клиент уже существует.') {
                 this.showNameError(
-                    error.message
+                    e.message
                 );
                 this.name.focus();
                 return;
             }
 
             this.notify.error(
-                error.message
+                e.message
             );
 
         } finally {
@@ -168,6 +167,7 @@ class ClientModal {
                 <i class="fa-solid fa-plus"></i>
                 Создать
             `;
+
         }
 
     }

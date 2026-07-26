@@ -17,6 +17,85 @@ class Api {
         localStorage.setItem('apiKey', value);
     }
 
+    get clients() {
+        return {
+            list: () => this.get('/api/clients'),
+
+            show: (publicKey) =>
+                this.get(`/api/clients/${publicKey}`),
+
+            create: (data) =>
+                this.post('/api/clients', data),
+
+            update: (publicKey, data) =>
+                this.put(`/api/clients/${publicKey}`, data),
+
+            delete: (publicKey) =>
+                this.delete(`/api/clients/${publicKey}`),
+
+            download: (publicKey, filename = null) =>
+                this.download(
+                    `/api/clients/${publicKey}/config`,
+                    filename
+                ),
+        };
+    }
+
+    get settings() {
+        return {
+            get: () =>
+                this.get('/api/settings'),
+
+            update: (data) =>
+                this.put('/api/settings', data),
+        };
+    }
+
+    get apiKeys() {
+        return {
+            get: () =>
+                this.get('/api/api-key'),
+
+            create: () =>
+                this.post('/api/api-key'),
+
+            rotate: () =>
+                this.put('/api/api-key'),
+        };
+    }
+
+    get setup() {
+        return {
+            get: () =>
+                this.get('/api/setup'),
+
+            install: () =>
+                this.post('/api/setup/install'),
+
+            update: () =>
+                this.post('/api/setup/update'),
+
+            initialize: () =>
+                this.post('/api/setup/initialize'),
+
+            start: () =>
+                this.post('/api/setup/start'),
+
+            stop: () =>
+                this.post('/api/setup/stop'),
+
+            restart: () =>
+                this.post('/api/setup/restart'),
+        };
+    }
+
+    get auth() {
+        return {
+            check: () =>
+                this.get('/api/auth/check'),
+        };
+    }
+
     get(url) {
         return this.request(url);
     }

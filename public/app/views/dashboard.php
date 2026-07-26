@@ -13,6 +13,114 @@
     <section class="card">
         <div class="card-header">
             <h2>
+                <i class="fa-solid fa-server"></i>
+                Состояние системы
+            </h2>
+        </div>
+
+        <table>
+            <tbody>
+
+                <tr>
+                    <td>WireGuard</td>
+                    <td id="wg-installed">
+                        <span class="status">—</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Версия</td>
+                    <td id="wg-version">—</td>
+                </tr>
+
+                <tr>
+                    <td>wg-quick</td>
+                    <td id="wg-quick">
+                        <span class="status">—</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Интерфейс</td>
+                    <td id="wg-running">
+                        <span class="status">—</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Конфигурация</td>
+                    <td id="wg-config">
+                        <span class="status">—</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Каталог клиентов</td>
+                    <td id="wg-clients">
+                        <span class="status">—</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>Пакетный менеджер</td>
+                    <td id="wg-package-manager">
+                        —
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+
+        <div class="actions system-actions">
+
+            <button
+                id="wg-install"
+                disabled>
+                <i class="fa-solid fa-download"></i>
+                Установить
+            </button>
+
+            <button
+                id="wg-update"
+                disabled>
+                <i class="fa-solid fa-arrow-up"></i>
+                Обновить
+            </button>
+
+            <button
+                id="wg-initialize"
+                disabled>
+                <i class="fa-solid fa-wrench"></i>
+                Инициализировать
+            </button>
+
+            <button
+                id="wg-start"
+                disabled>
+                <i class="fa-solid fa-play"></i>
+                Запустить
+            </button>
+
+            <button
+                id="wg-stop"
+                disabled>
+                <i class="fa-solid fa-stop"></i>
+                Остановить
+            </button>
+
+            <button
+                id="wg-restart"
+                disabled>
+                <i class="fa-solid fa-rotate"></i>
+                Перезапустить
+            </button>
+
+        </div>
+    </section>
+
+    <section class="card">
+        <div class="card-header">
+            <h2>
                 <i class="fa-solid fa-users"></i>
                 Клиенты WireGuard
             </h2>

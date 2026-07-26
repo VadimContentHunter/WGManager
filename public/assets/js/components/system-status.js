@@ -1,0 +1,233 @@
+class SystemStatus {
+
+    constructor(api, notify) {
+
+        this.api = api;
+        this.notify = notify;
+
+        this.installed = document.getElementById(
+            'wg-installed'
+        );
+
+        this.version = document.getElementById(
+            'wg-version'
+        );
+
+        this.wgQuick = document.getElementById(
+            'wg-quick'
+        );
+
+        this.running = document.getElementById(
+            'wg-running'
+        );
+
+        this.config = document.getElementById(
+            'wg-config'
+        );
+
+        this.clients = document.getElementById(
+            'wg-clients'
+        );
+
+        this.packageManager = document.getElementById(
+            'wg-package-manager'
+        );
+
+        this.buttons = {
+
+            install: document.getElementById(
+                'wg-install'
+            ),
+
+            update: document.getElementById(
+                'wg-update'
+            ),
+
+            initialize: document.getElementById(
+                'wg-initialize'
+            ),
+
+            start: document.getElementById(
+                'wg-start'
+            ),
+
+            stop: document.getElementById(
+                'wg-stop'
+            ),
+
+            restart: document.getElementById(
+                'wg-restart'
+            ),
+
+        };
+
+        this.registerEvents();
+
+    }
+
+    registerEvents() {
+
+        this.buttons.install.addEventListener(
+            'click',
+            () => this.execute('install')
+        );
+
+        this.buttons.update.addEventListener(
+            'click',
+            () => this.execute('update')
+        );
+
+        this.buttons.initialize.addEventListener(
+            'click',
+            () => this.execute('initialize')
+        );
+
+        this.buttons.start.addEventListener(
+            'click',
+            () => this.execute('start')
+        );
+
+        this.buttons.stop.addEventListener(
+            'click',
+            () => this.execute('stop')
+        );
+
+        this.buttons.restart.addEventListener(
+            'click',
+            () => this.execute('restart')
+        );
+
+    }
+
+    async load() {
+
+        try {
+
+            const response = await this.api.setup.get();
+
+            this.render(
+                response.data ?? {}
+            );
+
+        } catch (e) {
+
+            this.notify.error(
+                e.message
+            );
+
+        }
+
+    }
+
+    render(data) {
+
+        this.data = data;
+
+        this.renderStatus(
+            this.installed,
+            data.wireGuard?.installed,
+            'Установлен',
+            'Не установлен'
+        );
+
+        this.version.textContent =
+            data.wireGuard?.version ?? '—';
+
+        this.renderStatus(
+            this.wgQuick,
+            data.wgQuick?.installed,
+            'Установлен',
+            'Не установлен'
+        );
+
+        this.renderStatus(
+            this.running,
+            data.interface?.running,
+            'Запущен',
+            'Остановлен'
+        );
+
+        this.renderStatus(
+            this.config,
+            data.config?.exists &&
+            data.config?.readable,
+            'Доступна',
+            'Недоступна'
+        );
+
+        this.renderStatus(
+            this.clients,
+            data.clients?.exists &&
+            data.clients?.writable,
+            'Доступен',
+            'Недоступен'
+        );
+
+        this.packageManager.textContent =
+            data.packageManager ?? '—';
+
+        this.updateButtons();
+
+    }
+
+    renderStatus(
+        element,
+        state,
+        okText,
+        errorText
+    ) {
+
+        element.innerHTML = `
+            <span class="status ${
+                state
+                    ? 'status-ok'
+                    : 'status-error'
+            }">
+                ${
+                    state
+                        ? okText
+                        : errorText
+                }
+            </span>
+        `;
+
+    }
+    
+    updateButtons() {
+
+        const installed = this.data.wireGuard?.installed === true;
+        const configured = this.data.config?.exists === true && this.data.config?.readable === true;
+        const running = this.data.interface?.running === true;
+
+        this.buttons.install.disabled = installed;
+        this.buttons.update.disabled = !installed;
+        this.buttons.initialize.disabled = !installed || configured;
+        this.buttons.start.disabled = !configured || running;
+        this.buttons.stop.disabled = !running;
+        this.buttons.restart.disabled = !running;
+
+    }
+
+    async execute(action) {
+        this.disableButtons();
+        try {
+            await this.api.setup[action]();
+            this.notify.success(
+                'Операция успешно выполнена.'
+            );
+        } catch (e) {
+            this.notify.error(
+                e.message
+            );
+        }
+        return this.load();
+    }
+
+    disableButtons() {
+        Object.values(this.buttons).forEach(button => {
+            button.disabled = true;
+        });
+
+    }
+
+}
