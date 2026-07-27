@@ -24,6 +24,11 @@ class App {
             this.notify
         );
 
+        this.clientDeleteModal = new ClientDeleteModal(
+            this.api,
+            this.notify
+        );
+
         this.settingsModal = new SettingsModal(
             this.api,
             this.notify
@@ -55,7 +60,11 @@ class App {
             () => this.clientModal.open()
         );
 
-        this.clientModal.onCreate = () => {
+        this.clientModal.onChange = () => {
+            this.loadClients();
+        };
+
+        this.clientDeleteModal.onChange = () => {
             this.loadClients();
         };
 
@@ -141,11 +150,9 @@ class App {
     }
 
     async deleteClient(client) {
-        console.log(
-            'Delete client:',
+        this.clientDeleteModal.open(
             client
         );
-
     }
 
 }

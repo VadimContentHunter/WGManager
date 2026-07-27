@@ -22,20 +22,27 @@ class Api {
             list: () => this.get('/api/clients'),
 
             show: (publicKey) =>
-                this.get(`/api/clients/${publicKey}`),
+                this.get(
+                    `/api/clients/${encodeURIComponent(publicKey)}`
+                ),
 
             create: (data) =>
                 this.post('/api/clients', data),
 
             update: (publicKey, data) =>
-                this.put(`/api/clients/${publicKey}`, data),
+                this.put(
+                    `/api/clients/${encodeURIComponent(publicKey)}`,
+                    data
+                ),
 
             delete: (publicKey) =>
-                this.delete(`/api/clients/${publicKey}`),
+                this.delete(
+                    `/api/clients/${encodeURIComponent(publicKey)}`
+                ),
 
             download: (publicKey, filename = null) =>
                 this.download(
-                    `/api/clients/${publicKey}/config`,
+                    `/api/clients/${encodeURIComponent(publicKey)}/config`,
                     filename
                 ),
         };

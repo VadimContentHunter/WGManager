@@ -29,7 +29,7 @@ class ClientModal {
             'client-name-error'
         );
 
-        this.onCreate = null;
+        this.onChange = null;
         this.loading = false;
         this.registerEvents();
 
@@ -143,9 +143,7 @@ class ClientModal {
                 'Клиент успешно создан.'
             );
             this.close();
-            this.onCreate?.(
-                response.data
-            );
+            this.onChange?.(response.data);
 
         } catch (e) {
             if (e.message === 'Клиент уже существует.') {

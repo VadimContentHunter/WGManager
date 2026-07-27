@@ -62,7 +62,7 @@ class Router
             foreach ($matches as $key => $value) {
 
                 if (!is_int($key)) {
-                    $route[$key] = $value;
+                    $route[$key] = urldecode($value);
                 }
             }
 

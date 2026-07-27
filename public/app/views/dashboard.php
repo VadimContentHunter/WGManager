@@ -354,3 +354,38 @@
     </div>
 
 </div>
+
+<div id="client-delete-modal" class="modal hidden">
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="fa-solid fa-trash"></i>
+                Удаление клиента
+            </h2>
+            <button
+                id="client-delete-close"
+                class="modal-close"
+                type="button">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>
+                Вы действительно хотите удалить клиента
+                <strong id="client-delete-name"></strong>?
+            </p>
+            <p>
+                Это действие нельзя отменить.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button id="client-delete-cancel">
+                Отмена
+            </button>
+            <button id="client-delete-confirm">
+                <i class="fa-solid fa-trash"></i>
+                Удалить
+            </button>
+        </div>
+    </div>
+</div>
