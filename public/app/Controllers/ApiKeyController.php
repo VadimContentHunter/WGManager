@@ -19,16 +19,6 @@ class ApiKeyController
     ) {}
 
     /**
-     * Возвращает текущий API-ключ.
-     */
-    public function show(): void
-    {
-        $this->response->success([
-            'apiKey' => $this->apiKeys->get(),
-        ]);
-    }
-
-    /**
      * Создаёт новый API-ключ.
      */
     public function create(): void

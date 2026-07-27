@@ -53,9 +53,6 @@ class Api {
 
     get apiKeys() {
         return {
-            get: () =>
-                this.get('/api/api-key'),
-
             create: () =>
                 this.post('/api/api-key'),
 

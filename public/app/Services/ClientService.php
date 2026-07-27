@@ -58,13 +58,17 @@ class ClientService
         try {
 
             $this->wireGuard->addPeer($client);
+
             $this->wireGuard->createClientFiles(
                 $name,
                 $client
             );
 
             $this->wireGuard->save();
-            $this->wireGuard->apply();
+
+            if ($this->wireGuard->isRunning()) {
+                $this->wireGuard->apply();
+            }
         } catch (\Throwable $e) {
 
             $this->wireGuard->removePeer(
@@ -75,7 +79,6 @@ class ClientService
                 $name
             );
 
-            // $a = $e->getTraceAsString();
             throw $e;
         }
 
@@ -119,9 +122,13 @@ class ClientService
             $publicKey,
             $client
         );
+
         $this->wireGuard->save();
-        $this->wireGuard->apply();
-        
+
+        if ($this->wireGuard->isRunning()) {
+            $this->wireGuard->apply();
+        }
+
         return $this->wireGuard->getPeer(
             $publicKey
         );
@@ -158,7 +165,9 @@ class ClientService
 
             $this->wireGuard->save();
 
-            $this->wireGuard->apply();
+            if ($this->wireGuard->isRunning()) {
+                $this->wireGuard->apply();
+            }
         } catch (\Throwable $e) {
 
             $this->wireGuard->addPeer(

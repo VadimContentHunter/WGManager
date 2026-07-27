@@ -61,6 +61,7 @@ class WireGuardSetupService
      */
     public function initialize(): void
     {
+        $this->wireGuard->load();
         $this->wireGuard->initialize();
     }
 

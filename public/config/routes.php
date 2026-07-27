@@ -34,7 +34,6 @@ return [
     ],
 
     '#^api/api-key$#' => [
-        'GET'  => [ApiKeyController::class, 'show'],
         'POST' => [ApiKeyController::class, 'create'],
         'PUT'  => [ApiKeyController::class, 'rotate'],
     ],

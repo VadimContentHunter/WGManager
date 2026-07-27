@@ -141,6 +141,10 @@ class WireGuardService
      */
     public function initialize(): void
     {
+        if (empty($this->interface) && empty($this->peers)) {
+            $this->load();
+        }
+
         $interface = $this->interface;
         $peers = $this->peers;
         
@@ -361,6 +365,33 @@ class WireGuardService
         }
 
         return $config;
+    }
+
+    /**
+     * Проверяет, запущен ли интерфейс WireGuard.
+     *
+     * @return bool
+     * true  - Интерфейс запущен.
+     * false - Интерфейс остановлен.
+     */
+    public function isRunning(): bool
+    {
+        try {
+
+            $this->command->runRoot(
+                sprintf(
+                    'wg show %s',
+                    escapeshellarg(
+                        $this->getInterfaceName()
+                    )
+                )
+            );
+
+            return true;
+        } catch (RuntimeException) {
+
+            return false;
+        }
     }
 
     /**
@@ -686,23 +717,10 @@ class WireGuardService
 
         foreach ($this->peers as $peer) {
             $config[] = '';
-            $config[] = '[Peer]';
-            foreach ($peer as $key => $value) {
-
-                if (in_array(
-                    $key,
-                    [
-                        self::PEER_NAME,
-                        'Directory',
-                        'Status'
-                    ],
-                    true
-                )) {
-                    continue;
-                }
-
-                $config[] = "{$key} = {$value}";
-            }
+            array_push(
+                $config,
+                ...$this->buildPeer($peer, false)
+            );
         }
 
         return implode(PHP_EOL, $config) . PHP_EOL;
@@ -745,7 +763,6 @@ class WireGuardService
     private function buildRuntimeConfig(): string
     {
         $config = [];
-
         $config[] = '[Interface]';
         $config[] = 'PrivateKey = ' . (
             $this->interface[self::INTERFACE_PRIVATE_KEY] ?? ''
@@ -753,28 +770,63 @@ class WireGuardService
 
         foreach ($this->peers as $peer) {
             $config[] = '';
-            $config[] = '[Peer]';
-
-            foreach ($peer as $key => $value) {
-
-                if (in_array(
-                    $key,
-                    [
-                        self::PEER_NAME,
-                        self::PEER_PRIVATE_KEY,
-                        'Directory',
-                        'Status',
-                    ],
-                    true
-                )) {
-                    continue;
-                }
-
-                $config[] = "{$key} = {$value}";
-            }
+            array_push(
+                $config,
+                ...$this->buildPeer($peer, true)
+            );
         }
 
         return implode(PHP_EOL, $config) . PHP_EOL;
+    }
+
+    /**
+     * Формирует секцию Peer.
+     *
+     * @param array<string, string> $peer
+     * @param bool $runtime
+     * true  - Формировать для wg syncconf.
+     * false - Формировать для wg0.conf.
+     *
+     * @return array<int, string>
+     */
+    private function buildPeer(array $peer, bool $runtime): array
+    {
+        $config = [
+            '[Peer]',
+        ];
+
+        foreach ($peer as $key => $value) {
+
+            if (in_array(
+                $key,
+                [
+                    self::PEER_NAME,
+                    'Directory',
+                    'Status',
+                ],
+                true
+            )) {
+                continue;
+            }
+
+            if (
+                $runtime
+                && $key === self::PEER_PRIVATE_KEY
+            ) {
+                continue;
+            }
+
+            if (
+                !$runtime
+                && $key === self::PEER_PRIVATE_KEY
+            ) {
+                continue;
+            }
+
+            $config[] = "{$key} = {$value}";
+        }
+
+        return $config;
     }
 
     /**
@@ -838,11 +890,6 @@ class WireGuardService
         }
 
         try {
-            file_put_contents(
-                $tempFile,
-                $this->buildRuntimeConfig()
-            );
-
             if (
                 file_put_contents(
                     $tempFile,

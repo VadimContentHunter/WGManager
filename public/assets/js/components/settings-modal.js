@@ -60,12 +60,7 @@ class SettingsModal {
     }
 
     async load() {
-
-        await Promise.all([
-            this.loadSettings(),
-            this.loadApiKey()
-        ]);
-
+        await this.loadSettings();
     }
 
     async open() {
@@ -93,6 +88,12 @@ class SettingsModal {
     async loadSettings() {
         const response = await this.api.settings.get();
         const settings = response.data ?? {};
+
+        this.apiKey.value = settings.apiKey ?? '';
+        this.apiKeyStatus.value = settings.apiKey
+            ? 'Создан'
+            : 'Не создан';
+        this.api.apiKey = settings.apiKey ?? null;
 
         this.configPath.value = settings.configPath ?? '';
         this.clientsPath.value = settings.clientsPath ?? '';
@@ -127,18 +128,6 @@ class SettingsModal {
             this.setLoading(false);
             this.setDisabled(false);
         }
-    }
-
-    async loadApiKey() {
-        const response = await this.api.apiKeys.get();
-        const result = response.data ?? {};
-
-        this.apiKey.value = result.apiKey ?? '';
-        this.apiKeyStatus.value = result.apiKey
-            ? 'Создан'
-            : 'Не создан';
-
-        this.api.apiKey = result.apiKey ?? null;
     }
 
     async rotateApiKey() {

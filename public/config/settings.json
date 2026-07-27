@@ -6,6 +6,6 @@
     "configPath": "config/wg0.conf",
     "clientsPath": "config/clients",
     "allowedIps": "",
-    "persistentKeepalive": "25",
+    "persistentKeepalive": "26",
     "server": "127.0.0.1"
 }
