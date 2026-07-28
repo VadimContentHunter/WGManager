@@ -41,7 +41,7 @@ install_native() {
 
     configure_nginx
     configure_wireguard
-    check_native
+
     print_success "Native installation completed."
 }
 
@@ -53,7 +53,6 @@ detect_php() {
 
     systemctl enable "php${PHP_VERSION}-fpm"
     systemctl restart "php${PHP_VERSION}-fpm"
-
     systemctl is-active --quiet "php${PHP_VERSION}-fpm" || fatal "PHP-FPM failed to start."
 
     print_success "Detected PHP $PHP_VERSION"
@@ -78,21 +77,16 @@ configure_nginx() {
 server {
     listen 80;
     listen [::]:80;
-
     server_name $SERVER_NAME;
-
     root $WEB_ROOT;
     index index.php index.html;
-
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
-
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:$PHP_FPM_SOCKET;
     }
-
     location ~ /\. {
         deny all;
     }
@@ -101,17 +95,11 @@ EOF
 
                 ln -sf "$NGINX_CONFIG" "$NGINX_ENABLED"
                 rm -f /etc/nginx/sites-enabled/default
-
                 nginx -t || fatal "Nginx configuration test failed."
-
                 systemctl enable nginx
                 systemctl restart nginx
-
-                systemctl is-active --quiet nginx \
-                    || fatal "Nginx failed to start."
-
+                systemctl is-active --quiet nginx || fatal "Nginx failed to start."
                 print_success "Nginx configured."
-
                 break
                 ;;
             2)
@@ -146,19 +134,15 @@ configure_wireguard() {
             case "$choice" in
                 1)
                     wg genkey | tee /etc/wireguard/private.key | wg pubkey >/etc/wireguard/public.key
-
                     chmod 600 /etc/wireguard/private.key
                     chmod 644 /etc/wireguard/public.key
-
                     cat > "$config" <<EOF
 [Interface]
 Address = 10.0.0.1/24
 ListenPort = 51820
 PrivateKey = $(cat /etc/wireguard/private.key)
 EOF
-
                     chmod 600 "$config"
-
                     print_success "WireGuard configuration created."
                     break
                     ;;
@@ -173,7 +157,6 @@ EOF
     fi
 
     systemctl enable "wg-quick@${WIREGUARD_INTERFACE}"
-
     if systemctl start "wg-quick@${WIREGUARD_INTERFACE}"; then
         print_success "WireGuard started."
     else

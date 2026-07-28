@@ -3,6 +3,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export ROOT_DIR
 
 source "$ROOT_DIR/installer/common.sh"
 source "$ROOT_DIR/installer/config.sh"
@@ -27,10 +28,12 @@ main() {
         case "$choice" in
             1)
                 install_native
+                show_summary native
                 break
                 ;;
             2)
                 install_docker
+                show_summary docker
                 break
                 ;;
             3)

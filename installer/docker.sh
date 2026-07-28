@@ -32,26 +32,8 @@ install_docker() {
         clone_repository
     fi
 
-    print_info "Preparing Docker environment..."
-
-    cp "$DOCKERFILE_TEMPLATE" \
-    "$INSTALL_DIRECTORY/Dockerfile"
-
-    cp "$DOCKER_COMPOSE_TEMPLATE" \
-    "$INSTALL_DIRECTORY/docker-compose.yml"
-
-    mkdir -p "$INSTALL_DIRECTORY/config/nginx"
-
-    cp "$DOCKER_NGINX_TEMPLATE" \
-    "$INSTALL_DIRECTORY/config/nginx/default.conf"
-
-    chown -R "$WEB_USER:$WEB_GROUP" "$INSTALL_DIRECTORY"
-
     cd "$INSTALL_DIRECTORY" || fatal "Unable to access $INSTALL_DIRECTORY."
+    docker compose up -d --build || fatal "Failed to start Docker containers."
 
-    docker compose up -d --build \
-    || fatal "Failed to start Docker containers."
-
-    check_docker
     print_success "Docker installation completed."
 }
