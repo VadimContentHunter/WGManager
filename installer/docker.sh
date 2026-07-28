@@ -50,7 +50,8 @@ install_docker() {
     cd "$INSTALL_DIRECTORY" || fatal "Unable to access $INSTALL_DIRECTORY."
 
     docker compose up -d --build \
-        || fatal "Failed to start Docker containers."
+    || fatal "Failed to start Docker containers."
 
+    check_docker
     print_success "Docker installation completed."
 }

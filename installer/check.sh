@@ -1,28 +1,68 @@
 #!/usr/bin/env bash
 
-check_requirements() {
-    print_info "Checking system..."
+check_command() {
+    local command="$1"
 
-    command -v apt-get >/dev/null 2>&1 \
-        || fatal "apt-get not found."
+    if command -v "$command" >/dev/null 2>&1; then
+        print_success "$command found."
+    else
+        print_warning "$command not found."
+    fi
+}
 
-    command -v git >/dev/null 2>&1 \
-        || print_warning "Git is not installed yet."
+check_service() {
+    local service="$1"
 
-    command -v curl >/dev/null 2>&1 \
-        || print_warning "Curl is not installed yet."
+    if systemctl is-active --quiet "$service"; then
+        print_success "$service is running."
+    else
+        print_warning "$service is not running."
+    fi
+}
 
-    if ! ping -c1 -W2 github.com >/dev/null 2>&1; then
-        fatal "Internet connection is unavailable."
+check_native() {
+    echo
+    print_info "Running post-install checks..."
+    echo
+
+    check_command git
+    check_command php
+    check_command nginx
+    check_command wg
+
+    echo
+
+    check_service "php${PHP_VERSION}-fpm"
+    check_service nginx
+
+    if systemctl list-unit-files | grep -q "^wg-quick@${WIREGUARD_INTERFACE}\.service"; then
+        check_service "wg-quick@${WIREGUARD_INTERFACE}"
+    else
+        print_warning "WireGuard service is not configured."
     fi
 
-    if ss -tln | grep -q ':80 '; then
-        fatal "Port 80 is already in use."
+    echo
+}
+
+check_docker() {
+    echo
+    print_info "Running post-install checks..."
+    echo
+
+    check_command docker
+
+    if docker compose version >/dev/null 2>&1; then
+        print_success "Docker Compose found."
+    else
+        print_warning "Docker Compose not found."
+        return
     fi
 
-    if ss -uln | grep -q ':51820 '; then
-        fatal "UDP port 51820 is already in use."
-    fi
+    echo
 
-    print_success "System check completed."
+    cd "$INSTALL_DIRECTORY" || return
+
+    docker compose ps
+
+    echo
 }

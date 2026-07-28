@@ -41,7 +41,7 @@ install_native() {
 
     configure_nginx
     configure_wireguard
-
+    check_native
     print_success "Native installation completed."
 }
 
