@@ -1,0 +1,11 @@
+{
+    "server": "",
+    "dns": "",
+    "allowed_ips": "0.0.0.0/0",
+    "persistent_keepalive": "25",
+    "endpoint": "",
+    "public_key": "",
+    "listen_port": "51820",
+    "interface": "wg0",
+    "network": "10.0.0.0/24"
+}

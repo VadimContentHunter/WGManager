@@ -36,11 +36,15 @@ install_native() {
         clone_repository
     fi
 
-    chown -R "$WEB_USER:$WEB_GROUP" "$INSTALL_DIRECTORY"
-    chmod -R 755 "$INSTALL_DIRECTORY"
-
     configure_nginx
     configure_wireguard
+
+    if [[ -f "$INSTALL_DIRECTORY/install.sh" ]]; then
+        print_info "Running WGManager installer..."
+        bash "$INSTALL_DIRECTORY/install.sh"
+    else
+        fatal "install.sh not found."
+    fi
 
     print_success "Native installation completed."
 }
@@ -77,16 +81,21 @@ configure_nginx() {
 server {
     listen 80;
     listen [::]:80;
+
     server_name $SERVER_NAME;
+
     root $WEB_ROOT;
     index index.php index.html;
+
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
+
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:$PHP_FPM_SOCKET;
     }
+
     location ~ /\. {
         deny all;
     }
@@ -95,10 +104,13 @@ EOF
 
                 ln -sf "$NGINX_CONFIG" "$NGINX_ENABLED"
                 rm -f /etc/nginx/sites-enabled/default
+
                 nginx -t || fatal "Nginx configuration test failed."
+
                 systemctl enable nginx
                 systemctl restart nginx
                 systemctl is-active --quiet nginx || fatal "Nginx failed to start."
+
                 print_success "Nginx configured."
                 break
                 ;;
@@ -118,9 +130,8 @@ configure_wireguard() {
 
     local config="/etc/wireguard/${WIREGUARD_INTERFACE}.conf"
 
-    if [[ -f "$config" ]]; then
-        print_success "WireGuard configuration found."
-    else
+    if [[ ! -f "$config" ]]; then
+
         print_warning "WireGuard configuration not found."
 
         while true; do
@@ -133,17 +144,23 @@ configure_wireguard() {
 
             case "$choice" in
                 1)
+
                     wg genkey | tee /etc/wireguard/private.key | wg pubkey >/etc/wireguard/public.key
+
                     chmod 600 /etc/wireguard/private.key
                     chmod 644 /etc/wireguard/public.key
+
                     cat > "$config" <<EOF
 [Interface]
 Address = 10.0.0.1/24
 ListenPort = 51820
 PrivateKey = $(cat /etc/wireguard/private.key)
 EOF
+
                     chmod 600 "$config"
+
                     print_success "WireGuard configuration created."
+
                     break
                     ;;
                 2)
@@ -154,10 +171,13 @@ EOF
                     ;;
             esac
         done
+    else
+        print_success "WireGuard configuration found."
     fi
 
     systemctl enable "wg-quick@${WIREGUARD_INTERFACE}"
-    if systemctl start "wg-quick@${WIREGUARD_INTERFACE}"; then
+
+    if systemctl restart "wg-quick@${WIREGUARD_INTERFACE}"; then
         print_success "WireGuard started."
     else
         print_warning "Unable to start WireGuard."

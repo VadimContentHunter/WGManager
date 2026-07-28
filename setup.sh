@@ -16,15 +16,20 @@ source "$ROOT_DIR/installer/docker.sh"
 
 main() {
     show_banner
+
     check_root
     detect_os
     check_requirements
 
     while true; do
+        echo
         echo "1) Native (Nginx + PHP-FPM)"
         echo "2) Docker"
         echo "3) Exit"
+        echo
+
         read -rp "Choose installation method: " choice
+
         case "$choice" in
             1)
                 install_native
