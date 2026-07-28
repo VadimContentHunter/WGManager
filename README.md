@@ -9,19 +9,17 @@ A modern web interface for managing WireGuard servers
 ![Linux](https://img.shields.io/badge/Linux-Ubuntu-FCC624?style=for-the-badge&logo=linux)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
-Simple • Fast • Lightweight • No Docker Required
+Simple • Fast • Lightweight • Native & Docker Support
 
 ## 📑 Table of Contents
 
 - [Features](#-features)
-- [Screenshots](#-screenshots)
 - [Requirements](#requirements)
-- [Installation](#installation)
+- [Quick Start](#quick-start)
 - [Permissions](#permissions)
 - [API Authentication](#api-authentication)
 - [CLI](#cli)
 - [REST API](#rest-api)
-- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -36,11 +34,8 @@ Simple • Fast • Lightweight • No Docker Required
 - Start / Stop / Restart WireGuard
 - Real-time server status
 - Automatic client directory management
-- No Docker required
-
-## 📸 Screenshots
-
-![WGManager Dashboard](072217.png)
+- Native (Nginx + PHP-FPM) installation
+- Docker installation
 
 ## Requirements
 
@@ -58,18 +53,24 @@ Simple • Fast • Lightweight • No Docker Required
 - zip
 - opcache
 
-## Installation
+## Quick Start
 
 ```bash
 git clone https://github.com/VadimContentHunter/WGManager.git
 
 cd WGManager
 
-chmod +x install.sh
-sudo ./install.sh
+chmod +x setup.sh
+sudo ./setup.sh
 ```
 
-Configure Nginx and restart the service.
+The setup script will:
+
+- Install required packages
+- Configure WireGuard
+- Create application directories
+- Set file permissions
+- Prepare the application for first launch
 
 ## Permissions
 
@@ -134,17 +135,6 @@ php console.php apikey clear
 | GET | `/api/api-key` |
 | POST | `/api/api-key` |
 | PUT | `/api/api-key` |
-
-## Roadmap
-
-- ✅ WireGuard management
-- ✅ Client management
-- ✅ API authentication
-- ✅ Web interface
-- ⏳ QR code generation
-- ⏳ Dark mode
-- ⏳ Traffic statistics
-- ⏳ Multi-server support
 
 ## Contributing
 
