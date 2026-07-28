@@ -60,9 +60,21 @@ detect_php() {
 }
 
 configure_nginx() {
-    print_info "Configuring Nginx..."
+    print_info "Configure Nginx?"
 
-    cat > "$NGINX_CONFIG" <<EOF
+    while true; do
+        echo
+        echo "1) Configure Nginx"
+        echo "2) Skip"
+        echo
+
+        read -rp "Choose: " choice
+
+        case "$choice" in
+            1)
+                print_info "Configuring Nginx..."
+
+                cat > "$NGINX_CONFIG" <<EOF
 server {
     listen 80;
     listen [::]:80;
@@ -87,17 +99,30 @@ server {
 }
 EOF
 
-    ln -sf "$NGINX_CONFIG" "$NGINX_ENABLED"
-    rm -f /etc/nginx/sites-enabled/default
+                ln -sf "$NGINX_CONFIG" "$NGINX_ENABLED"
+                rm -f /etc/nginx/sites-enabled/default
 
-    nginx -t || fatal "Nginx configuration test failed."
+                nginx -t || fatal "Nginx configuration test failed."
 
-    systemctl enable nginx
-    systemctl restart nginx
+                systemctl enable nginx
+                systemctl restart nginx
 
-    systemctl is-active --quiet nginx || fatal "Nginx failed to start."
+                systemctl is-active --quiet nginx \
+                    || fatal "Nginx failed to start."
 
-    print_success "Nginx configured."
+                print_success "Nginx configured."
+
+                break
+                ;;
+            2)
+                print_warning "Skipping Nginx configuration."
+                break
+                ;;
+            *)
+                print_error "Invalid selection."
+                ;;
+        esac
+    done
 }
 
 configure_wireguard() {
