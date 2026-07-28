@@ -1,6 +1,11 @@
 class App {
 
+    static AUTO_REFRESH_INTERVAL = 2000;
+
     constructor() {
+        this.refreshInterval = null;
+        this.loadingClients = false;
+
         this.initComponents();
         this.registerEvents();
 
@@ -50,11 +55,6 @@ class App {
     }
 
     registerEvents() {
-        this.refreshButton.addEventListener(
-            'click',
-            () => this.loadClients()
-        );
-
         this.createButton.addEventListener(
             'click',
             () => this.clientModal.open()
@@ -80,34 +80,33 @@ class App {
 
     async init() {
         if (!this.api.apiKey) {
-
             this.apiKeyModal.open();
-
             return;
-
         }
 
         await this.settingsModal.load();
-        await this.systemStatus.load();
-        await this.loadClients();
+        await this.refresh();
+        this.startAutoRefresh();
+        this.startAutoRefresh();
 
     }
 
     async loadClients() {
+        if (this.loadingClients) {
+            return;
+        }
+
+        this.loadingClients = true;
         try {
             const response = await this.api.clients.list();
-
             this.clientTable.setClients(
                 response.data ?? []
             );
-
         } catch (e) {
-            this.notify.error(
-                e.message
-            );
-
+            this.notify.error(e.message);
+        } finally {
+            this.loadingClients = false;
         }
-
     }
 
     async handleClientAction(action, client) {
@@ -149,6 +148,29 @@ class App {
         this.clientDeleteModal.open(
             client
         );
+    }
+
+    async refresh() {
+        await Promise.all([
+            this.loadClients(),
+            this.systemStatus.load()
+        ]);
+    }
+
+    startAutoRefresh() {
+        this.stopAutoRefresh();
+
+        this.refreshInterval = setInterval(
+            () => this.refresh(),
+            App.AUTO_REFRESH_INTERVAL
+        );
+    }
+
+    stopAutoRefresh() {
+        if (this.refreshInterval !== null) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+        }
     }
 
 }

@@ -104,10 +104,6 @@
                 Клиенты WireGuard
             </h2>
             <div class="actions">
-                <button id="refresh-clients">
-                    <i class="fa-solid fa-rotate"></i>
-                    Обновить
-                </button>
                 <button id="create-client">
                     <i class="fa-solid fa-plus"></i>
                     Добавить
