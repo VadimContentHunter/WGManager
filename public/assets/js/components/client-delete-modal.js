@@ -26,7 +26,7 @@ class ClientDeleteModal {
 
         this.client = null;
         this.loading = false;
-        this.onDelete = null;
+        this.onChange?.();
 
         this.registerEvents();
     }

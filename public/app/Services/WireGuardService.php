@@ -626,19 +626,6 @@ class WireGuardService
     }
 
     /**
-     * Восстанавливает Peer.
-     *
-     * @param array<string, string> $peer
-     */
-    public function restorePeer(array $peer): void
-    {
-        $this->updatePeer(
-            $peer[self::PEER_PUBLIC_KEY],
-            $peer
-        );
-    }
-
-    /**
      * Удаляет Peer.
      *
      * @param string $publicKey Публичный ключ Peer.
@@ -884,17 +871,7 @@ class WireGuardService
                 continue;
             }
 
-            if (
-                $runtime
-                && $key === self::PEER_PRIVATE_KEY
-            ) {
-                continue;
-            }
-
-            if (
-                !$runtime
-                && $key === self::PEER_PRIVATE_KEY
-            ) {
+            if ($key === self::PEER_PRIVATE_KEY) {
                 continue;
             }
 
