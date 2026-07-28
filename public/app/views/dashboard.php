@@ -307,7 +307,7 @@
 <div id="client-modal" class="modal hidden">
     <div class="modal-content modal-sm">
         <div class="modal-header">
-            <h2 class="modal-title">
+            <h2 id="client-title" class="modal-title">
                 <i class="fa-solid fa-user-plus"></i>
                 Добавить клиента
             </h2>

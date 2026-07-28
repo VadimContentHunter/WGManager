@@ -31,6 +31,11 @@ class ClientModal {
 
         this.onChange = null;
         this.loading = false;
+        this.client = null;
+
+        this.title = document.getElementById(
+            'client-title'
+        );
         this.registerEvents();
 
     }
@@ -88,22 +93,35 @@ class ClientModal {
 
     }
 
-    open() {
-        this.name.value = '';
-        this.clearNameError();
+    open(client = null) {
+        this.client = client;
         this.loading = false;
+        this.clearNameError();
         this.createButton.disabled = false;
-        this.createButton.innerHTML = `
-            <i class="fa-solid fa-plus"></i>
-            Создать
-        `;
+        if (client) {
+            this.title.textContent = 'Редактирование клиента';
+            this.name.value = client.name ?? '';
+            this.createButton.innerHTML = `
+                <i class="fa-solid fa-floppy-disk"></i>
+                Сохранить
+            `;
+
+        } else {
+            this.title.textContent = 'Создание клиента';
+            this.name.value = '';
+            this.createButton.innerHTML = `
+                <i class="fa-solid fa-plus"></i>
+                Создать
+            `;
+
+        }
 
         this.modal.classList.remove(
             'hidden'
         );
 
         this.name.focus();
-
+        this.name.select();
     }
 
     close() {
@@ -119,55 +137,59 @@ class ClientModal {
         }
 
         const name = this.name.value.trim();
+
         if (!name) {
-            this.showNameError(
-                'Введите имя клиента.'
-            );
+            this.showNameError('Введите имя клиента.');
             this.name.focus();
             return;
         }
 
         this.loading = true;
         this.createButton.disabled = true;
-        this.createButton.innerHTML = `
-            <i class="fa-solid fa-spinner fa-spin"></i>
-            Создание...
-        `;
+        this.createButton.innerHTML = this.client
+            ? `
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Сохранение...
+            `
+            : `
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Создание...
+            `;
 
         try {
-            const response = await this.api.clients.create({
-                name
-            });
-
-            this.notify.success(
-                'Клиент успешно создан.'
-            );
+            let response;
+            if (this.client) {
+                response = await this.api.clients.update(
+                    this.client.publicKey,
+                    { name }
+                );
+                this.notify.success('Клиент успешно обновлен.');
+            } else {
+                response = await this.api.clients.create({ name });
+                this.notify.success('Клиент успешно создан.');
+            }
             this.close();
             this.onChange?.(response.data);
-
         } catch (e) {
             if (e.message === 'Клиент уже существует.') {
-                this.showNameError(
-                    e.message
-                );
+                this.showNameError(e.message);
                 this.name.focus();
                 return;
             }
-
-            this.notify.error(
-                e.message
-            );
-
+            this.notify.error(e.message);
         } finally {
             this.loading = false;
             this.createButton.disabled = false;
-            this.createButton.innerHTML = `
-                <i class="fa-solid fa-plus"></i>
-                Создать
-            `;
-
+            this.createButton.innerHTML = this.client
+                ? `
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Сохранить
+                `
+                : `
+                    <i class="fa-solid fa-plus"></i>
+                    Создать
+                `;
         }
-
     }
 
     showNameError(message) {

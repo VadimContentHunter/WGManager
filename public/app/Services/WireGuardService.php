@@ -147,7 +147,7 @@ class WireGuardService
 
         $interface = $this->interface;
         $peers = $this->peers;
-        
+
         try {
             $this->reset();
             $keys = $this->generateKeyPair();
@@ -188,14 +188,34 @@ class WireGuardService
             if ($name === '') {
                 continue;
             }
-            $this->saveClientFile(
-                $name,
-                'client.conf',
-                $this->buildClientConfig($peer)
-            );
+            $this->rebuildClientConfig($peer);
         }
     }
-    
+
+    /**
+     * Пересоздает конфигурацию клиента.
+     *
+     * @param array<string, string> $peer
+     *
+     * @throws RuntimeException
+     */
+    public function rebuildClientConfig(array $peer): void
+    {
+        $name = $peer[self::PEER_NAME] ?? '';
+
+        if ($name === '') {
+            throw new RuntimeException(
+                'Не указано имя клиента.'
+            );
+        }
+
+        $this->saveClientFile(
+            $name,
+            'client.conf',
+            $this->buildClientConfig($peer)
+        );
+    }
+
 
     /**
      * Заполняет секцию Interface.
@@ -477,6 +497,41 @@ class WireGuardService
     }
 
     /**
+     * Переименовывает каталог клиента.
+     *
+     * @throws RuntimeException
+     */
+    public function renameClientDirectory(
+        string $oldName,
+        string $newName
+    ): void {
+        if ($oldName === $newName) {
+            return;
+        }
+
+        $oldDirectory = $this->getClientDirectory($oldName);
+        $newDirectory = $this->getClientDirectory($newName);
+
+        if (!is_dir($oldDirectory)) {
+            throw new RuntimeException(
+                'Каталог клиента не найден.'
+            );
+        }
+
+        if (is_dir($newDirectory)) {
+            throw new RuntimeException(
+                'Каталог клиента уже существует.'
+            );
+        }
+
+        if (!rename($oldDirectory, $newDirectory)) {
+            throw new RuntimeException(
+                'Не удалось переименовать каталог клиента.'
+            );
+        }
+    }
+
+    /**
      * Создает все файлы клиента.
      *
      * @param string $name
@@ -539,14 +594,18 @@ class WireGuardService
      * @param string $publicKey Публичный ключ Peer.
      * @param array<string, string> $peer Новые данные Peer.
      *
-     * @return bool
-     * true  - Peer успешно обновлен.
-     * false - Peer не найден.
+     * @return array<string, string>|null
+     * Старые данные Peer или null, если Peer не найден.
      */
-    public function updatePeer(string $publicKey, array $peer): bool
-    {
+    public function updatePeer(
+        string $publicKey,
+        array $peer
+    ): ?array {
         foreach ($this->peers as $index => $item) {
-            if (($item[self::PEER_PUBLIC_KEY] ?? '') !== $publicKey) {
+
+            if (
+                ($item[self::PEER_PUBLIC_KEY] ?? '') !== $publicKey
+            ) {
                 continue;
             }
 
@@ -556,11 +615,27 @@ class WireGuardService
                 $peer['Status']
             );
 
+            $oldPeer = $this->peers[$index];
+
             $this->peers[$index] = $peer;
-            return true;
+
+            return $oldPeer;
         }
 
-        return false;
+        return null;
+    }
+
+    /**
+     * Восстанавливает Peer.
+     *
+     * @param array<string, string> $peer
+     */
+    public function restorePeer(array $peer): void
+    {
+        $this->updatePeer(
+            $peer[self::PEER_PUBLIC_KEY],
+            $peer
+        );
     }
 
     /**

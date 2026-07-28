@@ -16,11 +16,64 @@ class ClientService
     }
 
     /**
+     * Преобразует данные API во внутреннюю модель.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function fromApi(array $data): array
+    {
+        $map = [
+            'name'       => 'Name',
+            'publicKey'  => 'PublicKey',
+            'privateKey' => 'PrivateKey',
+            'allowedIps' => 'AllowedIPs',
+        ];
+
+        $result = [];
+
+        foreach ($data as $key => $value) {
+            $result[$map[$key] ?? $key] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Преобразует внутреннюю модель в API.
+     *
+     * @param array<string, mixed> $client
+     * @return array<string, mixed>
+     */
+    private function toApi(array $client): array
+    {
+        $map = [
+            'Name'       => 'name',
+            'PublicKey'  => 'publicKey',
+            'PrivateKey' => 'privateKey',
+            'AllowedIPs' => 'allowedIps',
+            'Directory'  => 'directory',
+            'Status'     => 'status',
+        ];
+
+        $result = [];
+
+        foreach ($client as $key => $value) {
+            $result[$map[$key] ?? $key] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
      * Получить список клиентов.
      */
     public function all(): array
     {
-        return $this->wireGuard->getPeers();
+        return array_map(
+            fn(array $client) => $this->toApi($client),
+            $this->wireGuard->getPeers()
+        );
     }
 
     /**
@@ -28,7 +81,13 @@ class ClientService
      */
     public function show(string $publicKey): ?array
     {
-        return $this->wireGuard->getPeer($publicKey);
+        $client = $this->wireGuard->getPeer($publicKey);
+
+        if ($client === null) {
+            return null;
+        }
+
+        return $this->toApi($client);
     }
 
     /**
@@ -36,10 +95,9 @@ class ClientService
      */
     public function create(array $data): array
     {
-        $this->validate($data);
-
-        $name = trim($data['name']);
-
+        $data = $this->fromApi($data);
+        $this->validate($data['Name'] ?? '');
+        $name = trim($data['Name']);
         if ($this->wireGuard->hasPeerName($name)) {
             throw new RuntimeException(
                 'Клиент уже существует.'
@@ -56,7 +114,6 @@ class ClientService
         ];
 
         try {
-
             $this->wireGuard->addPeer($client);
 
             $this->wireGuard->createClientFiles(
@@ -70,7 +127,6 @@ class ClientService
                 $this->wireGuard->apply();
             }
         } catch (\Throwable $e) {
-
             $this->wireGuard->removePeer(
                 $client['PublicKey']
             );
@@ -82,55 +138,97 @@ class ClientService
             throw $e;
         }
 
-        return $this->wireGuard->getPeer(
-            $client['PublicKey']
+        return $this->toApi(
+            $this->wireGuard->getPeer(
+                $client['PublicKey']
+            )
         );
     }
 
     /**
      * Обновить клиента.
      */
-    public function update(
-        string $publicKey,
-        array $data
-    ): ?array {
+    public function update(string $publicKey, array $data): ?array
+    {
+        $data = $this->fromApi($data);
 
-        $client = $this->wireGuard->getPeer(
-            $publicKey
-        );
+        $client = $this->wireGuard->getPeer($publicKey);
 
         if ($client === null) {
             return null;
         }
 
+        $oldName = $client['Name'];
+        $name = trim($data['Name'] ?? $oldName);
+
+        $this->validate($name);
+
         if (
-            isset($data['Name'])
-            && $data['Name'] !== ($client['Name'] ?? '')
-            && $this->wireGuard->hasPeerName($data['Name'])
+            $name !== $oldName
+            && $this->wireGuard->hasPeerName($name)
         ) {
             throw new RuntimeException(
                 'Клиент с таким именем уже существует.'
             );
         }
 
-        $client = array_merge(
+        $data['Name'] = $name;
+
+        $updated = array_merge(
             $client,
             $data
         );
 
-        $this->wireGuard->updatePeer(
-            $publicKey,
-            $client
-        );
+        /** @var array<string, string>|null $oldPeer */
+        $oldPeer = null;
 
-        $this->wireGuard->save();
+        try {
+            if ($oldName !== $name) {
+                $this->wireGuard->renameClientDirectory(
+                    $oldName,
+                    $name
+                );
+            }
 
-        if ($this->wireGuard->isRunning()) {
-            $this->wireGuard->apply();
+            $oldPeer = $this->wireGuard->updatePeer(
+                $publicKey,
+                $updated
+            );
+
+            $this->wireGuard->save();
+
+            $this->wireGuard->rebuildClientConfig(
+                $updated
+            );
+
+            if ($this->wireGuard->isRunning()) {
+                $this->wireGuard->apply();
+            }
+        } catch (\Throwable $e) {
+            if ($oldPeer !== null) {
+                $this->wireGuard->updatePeer(
+                    $publicKey,
+                    $oldPeer
+                );
+            }
+
+            if ($oldName !== $name) {
+                try {
+                    $this->wireGuard->renameClientDirectory(
+                        $name,
+                        $oldName
+                    );
+                } catch (\Throwable) {
+                }
+            }
+
+            throw $e;
         }
 
-        return $this->wireGuard->getPeer(
-            $publicKey
+        return $this->toApi(
+            $this->wireGuard->getPeer(
+                $publicKey
+            )
         );
     }
 
@@ -221,19 +319,25 @@ class ClientService
     }
 
     /**
-     * Проверка входных данных.
+     * Проверка имени клиента.
      */
     private function validate(
-        array $data
+        string $name
     ): void {
-        $name = trim($data['name'] ?? '');
+        $name = trim($name);
+
         if ($name === '') {
             throw new InvalidArgumentException(
                 'Не указано имя клиента.'
             );
         }
 
-        if (!preg_match('/^[A-Za-z0-9_-]{1,32}$/', $name)) {
+        if (
+            !preg_match(
+                '/^[A-Za-z0-9_-]{1,32}$/',
+                $name
+            )
+        ) {
             throw new InvalidArgumentException(
                 'Допустимы только латинские буквы, цифры, "-", "_" (до 32 символов).'
             );
@@ -243,12 +347,8 @@ class ClientService
     /**
      * Скачать клиентскую конфигурацию.
      */
-    public function download(
-        string $publicKey
-    ): ?string {
-        $client = $this->show(
-            $publicKey
-        );
+    public function download(string $publicKey): ?string {
+        $client = $this->wireGuard->getPeer($publicKey);
 
         if ($client === null) {
             return null;

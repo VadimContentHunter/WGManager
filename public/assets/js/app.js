@@ -129,8 +129,8 @@ class App {
     async downloadClient(client) {
         try {
             await this.api.clients.download(
-                client.PublicKey,
-                `${client.Name}.conf`
+                client.publicKey,
+                `${client.name}.conf`
             );
         } catch (e) {
             this.notify.error(
@@ -142,11 +142,7 @@ class App {
     }
 
     editClient(client) {
-        console.log(
-            'Edit client:',
-            client
-        );
-
+        this.clientModal.open(client);
     }
 
     async deleteClient(client) {

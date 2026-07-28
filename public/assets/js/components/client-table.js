@@ -35,7 +35,7 @@ class ClientTable {
             .toLowerCase();
 
         this.filteredClients = this.clients.filter(client =>
-            (client.Name ?? '')
+            (client.name ?? '')
                 .toLowerCase()
                 .includes(value)
         );
@@ -65,19 +65,19 @@ class ClientTable {
 
     renderRow(client) {
         return `
-            <tr data-key="${client.PublicKey}">
-                <td>${client.Name ?? '-'}</td>
-                <td>${client.AllowedIPs ?? '-'}</td>
-                <td>${this.renderStatus(client.Status)}</td>
-                <td>${this.formatHandshake(client.LastHandshake)}</td>
-                <td>${this.formatBytes(client.ReceiveBytes)}</td>
-                <td>${this.formatBytes(client.TransmitBytes)}</td>
+            <tr data-key="${client.publicKey}">
+                <td>${client.name ?? '-'}</td>
+                <td>${client.allowedIps ?? '-'}</td>
+                <td>${this.renderStatus(client.status)}</td>
+                <td>${this.formatHandshake(client.lastHandshake)}</td>
+                <td>${this.formatBytes(client.receiveBytes)}</td>
+                <td>${this.formatBytes(client.transmitBytes)}</td>
                 <td>
 
                     <button
                         class="action download"
                         data-action="download"
-                        data-key="${client.PublicKey}"
+                        data-key="${client.publicKey}"
                     >
                         <i class="fa-solid fa-download"></i>
                     </button>
@@ -85,7 +85,7 @@ class ClientTable {
                     <button
                         class="action edit"
                         data-action="edit"
-                        data-key="${client.PublicKey}"
+                        data-key="${client.publicKey}"
                     >
                         <i class="fa-solid fa-pen"></i>
                     </button>
@@ -93,7 +93,7 @@ class ClientTable {
                     <button
                         class="action delete"
                         data-action="delete"
-                        data-key="${client.PublicKey}"
+                        data-key="${client.publicKey}"
                     >
                         <i class="fa-solid fa-trash"></i>
                     </button>
@@ -174,7 +174,7 @@ class ClientTable {
         }
 
         const client = this.clients.find(client =>
-            client.PublicKey === button.dataset.key
+            client.publicKey === button.dataset.key
         );
 
         if (!client) {

@@ -3,6 +3,7 @@
         "NOPASSWD",
         "noconfirm",
         "pacman",
-        "wgmanager"
+        "wgmanager",
+        "xmark"
     ]
 }

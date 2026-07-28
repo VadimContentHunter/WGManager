@@ -77,7 +77,7 @@ class ClientDeleteModal {
         this.client = client;
         this.loading = false;
 
-        this.title.textContent = client.Name;
+        this.title.textContent = client.name;
 
         this.deleteButton.disabled = false;
         this.deleteButton.innerHTML = `
@@ -112,7 +112,7 @@ class ClientDeleteModal {
             Удаление...
         `;
         try {
-            await this.api.clients.delete(this.client.PublicKey);
+            await this.api.clients.delete(this.client.publicKey);
             this.loading = false;
             this.close();
             this.notify.success('Клиент успешно удалён.');
