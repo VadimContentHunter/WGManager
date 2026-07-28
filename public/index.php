@@ -10,8 +10,15 @@ use App\Services\Router;
 
 Autoloader::register();
 
-$response = new Response();
 
+$basePath = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+if ($basePath === '/' || $basePath === '\\') {
+    $basePath = '';
+}
+
+define('BASE_PATH', $basePath);
+
+$response = new Response();
 try {
 
     $router = new Router(

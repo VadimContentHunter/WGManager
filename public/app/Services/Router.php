@@ -32,15 +32,11 @@ class Router
     public function dispatch(): void
     {
         $method = $_SERVER['REQUEST_METHOD'];
-
-        $uri = trim(
-            parse_url(
-                $_SERVER['REQUEST_URI'],
-                PHP_URL_PATH
-            ),
-            '/'
-        );
-
+        $uri = parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH);
+        if (BASE_PATH !== '' && str_starts_with($uri, BASE_PATH)) {
+            $uri = substr($uri,strlen(BASE_PATH));
+        }
+        $uri = trim($uri, '/');
         foreach ($this->routes as $pattern => $handlers) {
 
             if (!preg_match($pattern, $uri, $matches)) {

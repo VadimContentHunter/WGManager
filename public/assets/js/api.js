@@ -1,7 +1,7 @@
 class Api {
 
-    constructor(baseUrl = '') {
-        this.baseUrl = baseUrl;
+    constructor() {
+        this.baseUrl = window.WGManager?.basePath ?? '';
     }
 
     get apiKey() {
