@@ -48,12 +48,15 @@ class ClientService
     private function toApi(array $client): array
     {
         $map = [
-            'Name'       => 'name',
-            'PublicKey'  => 'publicKey',
-            'PrivateKey' => 'privateKey',
-            'AllowedIPs' => 'allowedIps',
-            'Directory'  => 'directory',
-            'Status'     => 'status',
+            'Name'          => 'name',
+            'PublicKey'     => 'publicKey',
+            'PrivateKey'    => 'privateKey',
+            'AllowedIPs'    => 'allowedIps',
+            'Directory'     => 'directory',
+            'Status'        => 'status',
+            'Handshake'     => 'handshake',
+            'RX'            => 'rx',
+            'TX'            => 'tx',
         ];
 
         $result = [];

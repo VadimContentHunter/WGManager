@@ -69,9 +69,9 @@ class ClientTable {
                 <td>${client.name ?? '-'}</td>
                 <td>${client.allowedIps ?? '-'}</td>
                 <td>${this.renderStatus(client.status)}</td>
-                <td>${this.formatHandshake(client.lastHandshake)}</td>
-                <td>${this.formatBytes(client.receiveBytes)}</td>
-                <td>${this.formatBytes(client.transmitBytes)}</td>
+                <td>${client.handshake ?? '—'}</td>
+                <td>${client.rx ?? '—'}</td>
+                <td>${client.tx ?? '—'}</td>
                 <td>
 
                     <button
@@ -104,65 +104,19 @@ class ClientTable {
     }
 
     renderStatus(status = '') {
-        switch (status) {
-            case 'OK':
-                return `
-                    <span class="status status-ok">
-                        OK
-                    </span>
-                `;
 
-            case 'Некорректный':
-                return `
-                    <span class="status status-error">
-                        Некорректный
-                    </span>
-                `;
+        const classes = {
+            Online: 'status-ok',
+            Offline: 'status-warning',
+            Never: '',
+            'Некорректный': 'status-error',
+        };
 
-            default:
-                return `
-                    <span class="status">
-                        —
-                    </span>
-                `;
-        }
-
-    }
-
-    formatHandshake(value) {
-        if (!value || value === '0') {
-            return 'Никогда';
-        }
-        return value;
-    }
-
-    formatBytes(bytes) {
-        bytes = Number(bytes);
-        if (!Number.isFinite(bytes) || bytes <= 0) {
-            return '0 B';
-        }
-        
-        const units = [
-            'B',
-            'KB',
-            'MB',
-            'GB',
-            'TB'
-        ];
-
-        let unit = 0;
-        while (
-            bytes >= 1024 &&
-            unit < units.length - 1
-        ) {
-            bytes /= 1024;
-            unit++;
-        }
-
-        return `${bytes.toFixed(
-            bytes < 10 && unit > 0 ? 1 : 0
-        )} ${units[unit]}`;
-
+        return `
+            <span class="status ${classes[status] ?? ''}">
+                ${status || '—'}
+            </span>
+        `;
     }
 
     handleClick(event) {

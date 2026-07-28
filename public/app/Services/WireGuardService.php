@@ -36,6 +36,7 @@ class WireGuardService
     private const SETTING_NETWORK = 'network';
 
     private const DEFAULT_NETWORK = '10.0.0.1/24';
+    private const DEFAULT_ALLOWED_IPS = '10.0.0.0/24';
     private const DEFAULT_PORT = '51820';
 
     /**
@@ -67,6 +68,17 @@ class WireGuardService
      * @var array<int, array<string, string>>
      */
     private array $peers = [];
+
+    /**
+     * Статистика Peer во время выполнения.
+     *
+     * @var array<string, array{
+     *     Handshake:int,
+     *     RX:int,
+     *     TX:int
+     * }>|null
+     */
+    private ?array $runtimePeers = null;
 
     /**
      * WireGuardService constructor.
@@ -129,6 +141,7 @@ class WireGuardService
     {
         $this->interface = [];
         $this->peers = [];
+        $this->runtimePeers = null;
     }
 
     /**
@@ -345,6 +358,131 @@ class WireGuardService
             $this->configPath,
             PATHINFO_FILENAME
         );
+    }
+
+    /**
+     * Возвращает статистику Peer из WireGuard.
+     *
+     * @return array<string, array{
+     *     Handshake:int,
+     *     RX:int,
+     *     TX:int
+     * }>
+     */
+    private function getRuntimePeers(): array
+    {
+        if ($this->runtimePeers !== null) {
+            return $this->runtimePeers;
+        }
+
+        if (!$this->isRunning()) {
+            return $this->runtimePeers = [];
+        }
+
+        $output = trim(
+            $this->command->runRoot(
+                sprintf(
+                    'wg show %s dump',
+                    escapeshellarg(
+                        $this->getInterfaceName()
+                    )
+                )
+            )
+        );
+
+        if ($output === '') {
+            return $this->runtimePeers = [];
+        }
+
+        $lines = preg_split('/\R/', $output);
+
+        if (!$lines) {
+            return $this->runtimePeers = [];
+        }
+
+        // первая строка — информация об интерфейсе
+        array_shift($lines);
+
+        $stats = [];
+
+        foreach ($lines as $line) {
+            $parts = explode("\t", $line);
+
+            if (count($parts) < 8) {
+                continue;
+            }
+
+            $stats[$parts[0]] = [
+                'Handshake' => (int) $parts[4],
+                'RX' => (int) $parts[5],
+                'TX' => (int) $parts[6],
+            ];
+        }
+
+        $this->runtimePeers = $stats;
+
+        return $this->runtimePeers;
+    }
+
+    /**
+     * Форматирует время последнего Handshake.
+     */
+    private function formatHandshake(int $timestamp): string
+    {
+        if ($timestamp <= 0) {
+            return 'Never';
+        }
+
+        $diff = time() - $timestamp;
+
+        if ($diff < 60) {
+            return $diff . ' sec ago';
+        }
+
+        if ($diff < 3600) {
+            return floor($diff / 60) . ' min ago';
+        }
+
+        if ($diff < 86400) {
+            return floor($diff / 3600) . ' hour ago';
+        }
+
+        return floor($diff / 86400) . ' day ago';
+    }
+
+    /**
+     * Форматирует количество байт.
+     */
+    private function formatBytes(int $bytes): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        $i = 0;
+
+        while ($bytes >= 1024 && $i < count($units) - 1) {
+            $bytes /= 1024;
+            ++$i;
+        }
+
+        return sprintf(
+            $i === 0 ? '%d %s' : '%.1f %s',
+            $bytes,
+            $units[$i]
+        );
+    }
+
+    /**
+     * Возвращает статус Peer.
+     */
+    private function getPeerStatus(int $handshake): string
+    {
+        if ($handshake === 0) {
+            return 'Never';
+        }
+
+        return (time() - $handshake) < 120
+            ? 'Online'
+            : 'Offline';
     }
 
     /**
@@ -797,21 +935,48 @@ class WireGuardService
      */
     public function buildClientConfig(array $peer): string
     {
-        $server = trim($this->settings->get(self::SETTING_SERVER, '127.0.0.1'));
-        $serverPort = (int) $this->settings->get(self::SETTING_SERVER_PORT, 51820);
-        $endpoint = sprintf('%s:%d', $server, $serverPort);
+        $server = trim(
+            $this->settings->get(
+                self::SETTING_SERVER,
+                '127.0.0.1'
+            )
+        );
+
+        $serverPort = (int) $this->settings->get(
+            self::SETTING_SERVER_PORT,
+            self::DEFAULT_PORT
+        );
+
+        $endpoint = sprintf(
+            '%s:%d',
+            $server,
+            $serverPort
+        );
+
+        $allowedIps = trim(
+            $this->settings->get(
+                self::SETTING_ALLOWED_IPS,
+                self::DEFAULT_ALLOWED_IPS
+            )
+        );
 
         return implode(PHP_EOL, [
             '[Interface]',
             'PrivateKey = ' . ($peer[self::PEER_PRIVATE_KEY] ?? ''),
             'Address = ' . ($peer[self::PEER_ALLOWED_IPS] ?? ''),
-            'DNS = ' . $this->settings->get(self::SETTING_DNS, '1.1.1.1'),
+            'DNS = ' . $this->settings->get(
+                self::SETTING_DNS,
+                '1.1.1.1'
+            ),
             '',
             '[Peer]',
             'PublicKey = ' . $this->getServerPublicKey(),
             'Endpoint = ' . $endpoint,
-            'AllowedIPs = ' . $this->settings->get(self::SETTING_ALLOWED_IPS, '0.0.0.0/0'),
-            'PersistentKeepalive = ' . $this->settings->get(self::SETTING_PERSISTENT_KEEPALIVE, '25'),
+            'AllowedIPs = ' . $allowedIps,
+            'PersistentKeepalive = ' . $this->settings->get(
+                self::SETTING_PERSISTENT_KEEPALIVE,
+                '25'
+            ),
             '',
         ]) . PHP_EOL;
     }
@@ -1062,7 +1227,8 @@ class WireGuardService
     }
 
     /**
-     * Дополняет данные Peer информацией из каталога клиента.
+     * Дополняет данные Peer информацией из каталога клиента
+     * и статистикой WireGuard.
      *
      * @param array<string, string> $peer
      *
@@ -1078,12 +1244,44 @@ class WireGuardService
             $peer[self::PEER_NAME] = '';
             $peer['Directory'] = '';
             $peer['Status'] = 'Некорректный';
+            $peer['Handshake'] = '—';
+            $peer['RX'] = '—';
+            $peer['TX'] = '—';
+
             return $peer;
         }
 
         $peer[self::PEER_NAME] = basename($directory);
         $peer['Directory'] = $directory;
-        $peer['Status'] = 'OK';
+
+        $runtime = $this->getRuntimePeers();
+        $stats = $runtime[$peer[self::PEER_PUBLIC_KEY] ?? ''] ?? null;
+
+        if ($stats === null) {
+            $peer['Status'] = 'Offline';
+            $peer['Handshake'] = 'Never';
+            $peer['RX'] = '0 B';
+            $peer['TX'] = '0 B';
+
+            return $peer;
+        }
+
+        $peer['Status'] = $this->getPeerStatus(
+            $stats['Handshake']
+        );
+
+        $peer['Handshake'] = $this->formatHandshake(
+            $stats['Handshake']
+        );
+
+        $peer['RX'] = $this->formatBytes(
+            $stats['RX']
+        );
+
+        $peer['TX'] = $this->formatBytes(
+            $stats['TX']
+        );
+
         return $peer;
     }
 }
