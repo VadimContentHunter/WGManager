@@ -74,10 +74,24 @@ class SettingsService
         );
 
         if ($json === false) {
-            throw new RuntimeException('Ошибка формирования JSON.');
+            throw new RuntimeException(
+                'Ошибка формирования JSON.'
+            );
         }
 
-        file_put_contents($this->file, $json);
+        $result = file_put_contents(
+            $this->file,
+            $json,
+            LOCK_EX
+        );
+
+        if ($result === false) {
+            throw new RuntimeException(
+                "Не удалось сохранить настройки: {$this->file}"
+            );
+        }
+
+        clearstatcache(true, $this->file);
     }
 
     /**
